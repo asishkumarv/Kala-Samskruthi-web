@@ -11,10 +11,21 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    login(email, password);
-    navigate("/");
+    setError("");
+    setLoading(true);
+    try {
+      await login(email, password);
+      navigate("/");
+    } catch (err: any) {
+      setError(err.message || "Failed to login");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -48,8 +59,9 @@ const Login = () => {
               {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
-          <button type="submit" className="w-full bg-accent text-accent-foreground py-3 rounded-md font-body font-medium hover:brightness-110 transition-all">
-            Sign In
+          {error && <p className="text-destructive text-sm font-body text-center">{error}</p>}
+          <button disabled={loading} type="submit" className="w-full bg-accent text-accent-foreground py-3 rounded-md font-body font-medium hover:brightness-110 transition-all disabled:opacity-50">
+            {loading ? "Signing In..." : "Sign In"}
           </button>
         </form>
 

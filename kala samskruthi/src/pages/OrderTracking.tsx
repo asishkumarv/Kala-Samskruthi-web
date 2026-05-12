@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useParams, useLocation, Link } from "react-router-dom";
 import { Package, ShoppingBag, PackageCheck, Truck, Home, CircleCheck, MapPin, Calendar, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
@@ -14,7 +15,34 @@ const allSteps = [
 const OrderTracking = () => {
   const { orderId } = useParams();
   const location = useLocation();
-  const state = location.state as { items?: any[]; total?: number } | null;
+  const [orderDetails, setOrderDetails] = useState<any>(location.state || null);
+  const [loading, setLoading] = useState(!location.state);
+
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!orderDetails && orderId) {
+      setLoading(true);
+      fetch(`http://localhost:5000/api/orders/${orderId}`)
+        .then(async (res) => {
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || "Order not found");
+          }
+          return res.json();
+        })
+        .then(data => {
+          setOrderDetails(data);
+          setError("");
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error(err);
+          setError(err.message);
+          setLoading(false);
+        });
+    }
+  }, [orderId, orderDetails]);
 
   const currentStep = 1; // 0-indexed: Order Placed (0) and Order Confirmed (1) are done
   const trackingId = "TRK-" + (orderId?.replace("KSA-", "") || "0000000");
@@ -27,6 +55,25 @@ const OrderTracking = () => {
     month: "long",
     day: "numeric",
   });
+
+  if (loading) {
+    return (
+      <div className="pt-24 min-h-screen text-center px-4">
+        <p className="font-body text-muted-foreground mb-4">Loading order details...</p>
+      </div>
+    );
+  }
+
+  if (error || (!orderDetails && !loading)) {
+    return (
+      <div className="pt-24 min-h-screen text-center px-4">
+        <p className="font-body text-destructive mb-4">{error || "Order not found."}</p>
+        <Link to="/track-order" className="text-accent font-body inline-flex items-center gap-2">
+          <ArrowLeft className="h-4 w-4" /> Try another Tracking ID
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="pt-20 min-h-screen">
@@ -66,11 +113,11 @@ const OrderTracking = () => {
         </div>
 
         {/* Order Items */}
-        {state?.items && (
+        {orderDetails?.items && (
           <div className="bg-card border border-border rounded-lg p-6 mb-8">
             <h2 className="font-display text-xl mb-4">Order Items</h2>
             <div className="space-y-3">
-              {state.items.map((item: any) => (
+              {orderDetails.items.map((item: any) => (
                 <div key={item.id} className="flex items-center gap-3">
                   <img src={item.image} alt={item.name} className="w-14 h-14 object-cover rounded" />
                   <div className="flex-1 min-w-0">
@@ -81,10 +128,10 @@ const OrderTracking = () => {
                 </div>
               ))}
             </div>
-            {state.total && (
+            {orderDetails.total && (
               <div className="border-t border-border pt-3 mt-3 flex justify-between items-center">
                 <span className="font-display text-base">Total</span>
-                <span className="font-display text-lg text-accent">₹{state.total.toLocaleString()}</span>
+                <span className="font-display text-lg text-accent">₹{orderDetails.total.toLocaleString()}</span>
               </div>
             )}
           </div>

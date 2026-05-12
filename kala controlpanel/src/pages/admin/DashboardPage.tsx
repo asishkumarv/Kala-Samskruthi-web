@@ -1,11 +1,25 @@
+import { useApi } from "@/hooks/useApi";
 import { StatCard } from "@/components/admin/StatCard";
 import { StatusBadge } from "@/components/admin/StatusBadge";
-import { dashboardStats, mockOrders, mockInquiries } from "@/data/mockData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Package, MessageSquare, ShoppingCart, IndianRupee, Activity, Video, Paintbrush } from "lucide-react";
 
 export default function DashboardPage() {
+  const { data: mockInquiries = [] } = useApi('/inquiries');
+  const { data: orders = [] } = useApi('/orders');
+  const { data: products = [] } = useApi('/products');
+  const { data: videos = [] } = useApi('/videos');
+  const { data: customReqs = [] } = useApi('/custom-requests');
+
+  // Calculate dynamic stats
+  const totalProducts = products.length;
+  const totalInquiries = mockInquiries.length;
+  const totalOrders = orders.length;
+  const totalRevenue = orders.reduce((sum: number, o: any) => sum + o.total, 0);
+  const totalVideos = videos.length;
+  const totalCustomRequests = customReqs.length;
+
   return (
     <div className="space-y-6">
       <div>
@@ -14,12 +28,12 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
-        <StatCard title="Products" value={dashboardStats.totalProducts} icon={Package} trend={{ value: 12, positive: true }} />
-        <StatCard title="Inquiries" value={dashboardStats.totalInquiries} icon={MessageSquare} trend={{ value: 8, positive: true }} />
-        <StatCard title="Orders" value={dashboardStats.totalOrders} icon={ShoppingCart} trend={{ value: 15, positive: true }} />
-        <StatCard title="Revenue" value={`₹${dashboardStats.totalRevenue.toLocaleString("en-IN")}`} icon={IndianRupee} trend={{ value: 22, positive: true }} />
-        <StatCard title="Videos" value={dashboardStats.totalVideos} icon={Video} />
-        <StatCard title="Custom Requests" value={dashboardStats.totalCustomRequests} icon={Paintbrush} trend={{ value: 5, positive: true }} />
+        <StatCard title="Products" value={totalProducts} icon={Package} trend={{ value: 0, positive: true }} />
+        <StatCard title="Inquiries" value={totalInquiries} icon={MessageSquare} trend={{ value: 0, positive: true }} />
+        <StatCard title="Orders" value={totalOrders} icon={ShoppingCart} trend={{ value: 0, positive: true }} />
+        <StatCard title="Revenue" value={`₹${totalRevenue.toLocaleString("en-IN")}`} icon={IndianRupee} trend={{ value: 0, positive: true }} />
+        <StatCard title="Videos" value={totalVideos} icon={Video} />
+        <StatCard title="Custom Requests" value={totalCustomRequests} icon={Paintbrush} trend={{ value: 0, positive: true }} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -31,17 +45,13 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {dashboardStats.recentActivity.map((activity, i) => (
-                <div key={i} className="flex items-start gap-3 pb-3 border-b last:border-0 last:pb-0">
-                  <div className={`mt-1 h-2 w-2 rounded-full shrink-0 ${
-                    activity.type === "order" ? "bg-success" : activity.type === "inquiry" ? "bg-info" : activity.type === "product" ? "bg-primary" : "bg-warning"
-                  }`} />
+              <div className="flex items-start gap-3 pb-3 border-b last:border-0 last:pb-0">
+                  <div className="mt-1 h-2 w-2 rounded-full shrink-0 bg-success" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm">{activity.text}</p>
-                    <p className="text-xs text-muted-foreground">{activity.time}</p>
+                    <p className="text-sm">Activity dynamically loading...</p>
+                    <p className="text-xs text-muted-foreground">Just now</p>
                   </div>
-                </div>
-              ))}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -63,7 +73,7 @@ export default function DashboardPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {mockOrders.slice(0, 4).map((order) => (
+                {orders.slice(0, 4).map((order: any) => (
                   <TableRow key={order.id}>
                     <TableCell className="font-medium">{order.id}</TableCell>
                     <TableCell>{order.customerName}</TableCell>
@@ -96,7 +106,7 @@ export default function DashboardPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockInquiries.map((inq) => (
+              {mockInquiries.slice(0, 5).map((inq: any) => (
                 <TableRow key={inq.id}>
                   <TableCell className="font-medium">{inq.id}</TableCell>
                   <TableCell>{inq.customerName}</TableCell>

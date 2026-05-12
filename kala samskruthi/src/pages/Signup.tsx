@@ -10,10 +10,21 @@ const Signup = () => {
   const { signup } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    signup(name, email, password);
-    navigate("/");
+    setError("");
+    setLoading(true);
+    try {
+      await signup(name, email, password);
+      navigate("/");
+    } catch (err: any) {
+      setError(err.message || "Failed to sign up");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -50,8 +61,9 @@ const Signup = () => {
             required
             className="w-full px-4 py-3 rounded-md border border-border bg-background font-body text-sm focus:outline-none focus:ring-2 focus:ring-accent"
           />
-          <button type="submit" className="w-full bg-accent text-accent-foreground py-3 rounded-md font-body font-medium hover:brightness-110 transition-all">
-            Create Account
+          {error && <p className="text-destructive text-sm font-body text-center">{error}</p>}
+          <button disabled={loading} type="submit" className="w-full bg-accent text-accent-foreground py-3 rounded-md font-body font-medium hover:brightness-110 transition-all disabled:opacity-50">
+            {loading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
 

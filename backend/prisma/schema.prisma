@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -87,6 +88,7 @@ model OrderItem {
   id           String  @id @default(uuid())
   orderId      String
   order        Order   @relation(fields: [orderId], references: [id])
+  productId    String?
   productName  String
   productImage String?
   quantity     Int
@@ -130,4 +132,23 @@ model CustomArtworkRequest {
   notes            String?
   status           String   @default("New")
   createdAt        DateTime @default(now())
+}
+
+model User {
+  id       String @id @default(uuid())
+  name     String
+  email    String @unique
+  password String
+  role     String @default("User")
+  createdAt DateTime @default(now())
+}
+
+model SiteContent {
+  id           String @id @default("singleton")
+  homepageText String @db.Text
+  aboutUsText  String @db.Text
+  contactInfo  Json
+  socialLinks  Json
+  materialDetails Json
+  updatedAt    DateTime @updatedAt
 }

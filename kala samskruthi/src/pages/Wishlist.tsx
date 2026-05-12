@@ -1,11 +1,12 @@
 import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
-import { artworks } from "@/data/artworks";
+import { useArtworks } from "@/hooks/useArtworks";
 import { useCart } from "@/context/CartContext";
 import ArtCard from "@/components/ArtCard";
 import { motion } from "framer-motion";
 
 const Wishlist = () => {
+  const { data: artworks } = useArtworks();
   const { wishlist } = useCart();
   const wishlisted = artworks.filter((a) => wishlist.includes(a.id));
 

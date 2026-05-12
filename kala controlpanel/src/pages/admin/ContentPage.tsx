@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { mockSiteContent, SiteContent } from "@/data/mockData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,34 @@ import { toast } from "sonner";
 
 export default function ContentPage() {
   const [content, setContent] = useState<SiteContent>(mockSiteContent);
+  const [loading, setLoading] = useState(true);
 
-  const save = () => toast.success("Content saved successfully!");
+  useEffect(() => {
+    fetch('http://localhost:5000/api/content')
+      .then(res => res.json())
+      .then(data => {
+        if (data) setContent(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+
+  const save = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(content)
+      });
+      if (!res.ok) throw new Error('Failed to save');
+      toast.success("Content saved successfully!");
+    } catch (err) {
+      toast.error("Failed to save content");
+    }
+  };
 
   return (
     <div className="space-y-6">

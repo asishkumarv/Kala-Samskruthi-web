@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { mockGalleryImages, GalleryImage } from "@/data/mockData";
+import { useApi } from "@/hooks/useApi";
+import { useState, useEffect } from "react";
+import {  GalleryImage } from "@/data/mockData";
 import { AdminModal } from "@/components/admin/AdminModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,29 +9,87 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Image as ImageIcon } from "lucide-react";
+import { Plus, Trash2, Edit2, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
 const categories = ["Krishna", "Buddha", "Ganesh", "Peacock", "Floral", "Other"] as const;
 
 export default function GalleryPage() {
+  const { data: mockGalleryImages } = useApi('/gallery');
   const [images, setImages] = useState<GalleryImage[]>(mockGalleryImages);
+  useEffect(() => {
+    if (mockGalleryImages && mockGalleryImages.length > 0) {
+      setImages(mockGalleryImages);
+    }
+  }, [mockGalleryImages]);
+
   const [filterCat, setFilterCat] = useState<string>("all");
   const [modalOpen, setModalOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState({ url: "", title: "", category: "Krishna" as GalleryImage["category"], isBanner: false, isCarousel: false });
 
   const filtered = filterCat === "all" ? images : images.filter((i) => i.category === filterCat);
 
-  const handleAdd = () => {
-    if (!form.url || !form.title) { toast.error("URL and title required"); return; }
-    setImages((prev) => [...prev, { id: String(Date.now()), ...form, createdAt: new Date().toISOString().split("T")[0] }]);
-    setModalOpen(false);
-    toast.success("Image added");
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("Image size too large (max 10MB)");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setForm({ ...form, url: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setImages((prev) => prev.filter((i) => i.id !== id));
-    toast.success("Image deleted");
+  const handleSave = async () => {
+    if (!form.url || !form.title) { toast.error("URL and title required"); return; }
+    
+    try {
+      if (editId) {
+        const res = await fetch(`http://localhost:5000/api/gallery/${editId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form)
+        });
+        if (!res.ok) throw new Error('Failed to update');
+        setImages((prev) => prev.map((i) => i.id === editId ? { ...i, ...form } : i));
+        toast.success("Image updated");
+      } else {
+        const res = await fetch('http://localhost:5000/api/gallery', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form)
+        });
+        if (!res.ok) throw new Error('Failed to create');
+        const newImg = await res.json();
+        setImages((prev) => [...prev, newImg]);
+        toast.success("Image added");
+      }
+      setModalOpen(false);
+    } catch (err) {
+      toast.error("Failed to save image");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/gallery/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete');
+      setImages((prev) => prev.filter((i) => i.id !== id));
+      toast.success("Image deleted");
+    } catch (err) {
+      toast.error("Failed to delete image");
+    }
+  };
+
+  const openEdit = (img: GalleryImage) => {
+    setForm({ url: img.url, title: img.title, category: img.category, isBanner: img.isBanner, isCarousel: img.isCarousel });
+    setEditId(img.id);
+    setModalOpen(true);
   };
 
   return (
@@ -57,7 +116,10 @@ export default function GalleryPage() {
           <Card key={img.id} className="overflow-hidden animate-fade-in">
             <div className="aspect-square relative group">
               <img src={img.url} alt={img.title} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                <Button variant="secondary" size="icon" onClick={() => openEdit(img)}>
+                  <Edit2 className="h-4 w-4" />
+                </Button>
                 <Button variant="destructive" size="icon" onClick={() => handleDelete(img.id)}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -81,11 +143,14 @@ export default function GalleryPage() {
         )}
       </div>
 
-      <AdminModal open={modalOpen} onOpenChange={setModalOpen} title="Add Gallery Image">
+      <AdminModal open={modalOpen} onOpenChange={setModalOpen} title={editId ? "Edit Gallery Image" : "Add Gallery Image"}>
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label>Image URL</Label>
-            <Input value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder="https://..." />
+            <Label>Image (Upload or URL)</Label>
+            <div className="flex gap-2">
+              <Input type="file" accept="image/*" onChange={handleImageUpload} className="flex-1" />
+            </div>
+            <Input value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder="Or paste image URL..." />
           </div>
           <div className="grid gap-2">
             <Label>Title</Label>
@@ -108,7 +173,7 @@ export default function GalleryPage() {
               <Label>Carousel</Label>
             </div>
           </div>
-          <Button onClick={handleAdd} className="w-full">Add Image</Button>
+          <Button onClick={handleSave} className="w-full">{editId ? "Update Image" : "Add Image"}</Button>
         </div>
       </AdminModal>
     </div>

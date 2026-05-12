@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Heart, ShoppingCart, Star, Truck, Shield, RotateCcw, Zap, Minus, Plus, ChevronRight, ImagePlus } from "lucide-react";
-import { artworks } from "@/data/artworks";
+import { useArtworks } from "@/hooks/useArtworks";
 import { useCart } from "@/context/CartContext";
 import ArtCard from "@/components/ArtCard";
 import { motion } from "framer-motion";
 
 const ArtworkDetail = () => {
+  const { data: artworks } = useArtworks();
   const { id } = useParams();
-  const artwork = artworks.find((a) => a.id === Number(id));
+  const artwork = artworks.find((a) => String(a.id) === String(id));
   const { addToCart, toggleWishlist, wishlist } = useCart();
   const navigate = useNavigate();
   const [selectedFrame, setSelectedFrame] = useState(0);
@@ -26,8 +27,10 @@ const ArtworkDetail = () => {
 
   const isWished = wishlist.includes(artwork.id);
   const related = artworks.filter((a) => a.id !== artwork.id).slice(0, 3);
-  const discount = Math.round(((artwork.originalPrice - artwork.price) / artwork.originalPrice) * 100);
-  const reviewCount = artwork.reviews.length;
+  const price = artwork.price || 0;
+  const originalPrice = artwork.originalPrice || price;
+  const discount = originalPrice > 0 ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
+  const reviewCount = artwork.reviews?.length || 0;
   const displayImages = artwork.images && artwork.images.length > 0 ? artwork.images : [artwork.image];
 
   const handleAddToCart = () => {
@@ -123,8 +126,10 @@ const ArtworkDetail = () => {
               </div>
 
               <div className="flex items-baseline gap-3 mt-5">
-                <span className="font-display text-3xl text-accent">₹{artwork.price.toLocaleString()}</span>
-                <span className="text-lg text-muted-foreground line-through font-body">₹{artwork.originalPrice.toLocaleString()}</span>
+                <span className="font-display text-3xl text-accent">₹{price.toLocaleString()}</span>
+                {originalPrice > price && (
+                  <span className="text-lg text-muted-foreground line-through font-body">₹{originalPrice.toLocaleString()}</span>
+                )}
               </div>
 
               <p className="text-muted-foreground font-body mt-4 leading-relaxed">{artwork.description}</p>
@@ -153,7 +158,7 @@ const ArtworkDetail = () => {
               <div className="mt-6">
                 <p className="font-body font-medium text-foreground mb-3">Frame Size</p>
                 <div className="flex gap-2 flex-wrap">
-                  {artwork.frameSizes.map((frame, index) => (
+                  {(artwork.frameSizes || [{ label: "Standard", dimensions: artwork.size || "Standard" }]).map((frame, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedFrame(index)}
@@ -215,7 +220,7 @@ const ArtworkDetail = () => {
           <div className="mt-16">
             <h2 className="font-display text-2xl mb-8">Customer Reviews ({reviewCount})</h2>
             <div className="space-y-6">
-              {artwork.reviews.map((review, index) => (
+              {artwork.reviews?.map((review, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 10 }}
@@ -225,8 +230,8 @@ const ArtworkDetail = () => {
                   className="border-b border-border pb-6 last:border-0"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <p className="font-body font-medium text-foreground">{review.name}</p>
-                    <p className="text-sm font-body text-muted-foreground">{review.date}</p>
+                    <p className="font-body font-medium text-foreground">{review.customerName || review.name}</p>
+                    <p className="text-sm font-body text-muted-foreground">{new Date(review.date).toLocaleDateString()}</p>
                   </div>
                   <div className="flex mb-2">
                     {[...Array(5)].map((_, i) => (

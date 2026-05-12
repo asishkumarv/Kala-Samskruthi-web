@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { artworks, categories } from "@/data/artworks";
+import { categories } from "@/data/artworks";
+import { useArtworks } from "@/hooks/useArtworks";
 import ArtCard from "@/components/ArtCard";
 
 const WallArt = () => {
+  const { data: artworks } = useArtworks();
   const [active, setActive] = useState("All");
   const filtered = active === "All" ? artworks : artworks.filter((a) => a.category === active);
 

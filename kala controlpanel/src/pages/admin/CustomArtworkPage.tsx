@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { mockCustomArtworkRequests, CustomArtworkRequest } from "@/data/mockData";
+import { useApi } from "@/hooks/useApi";
+import { useState, useEffect } from "react";
+import {  CustomArtworkRequest } from "@/data/mockData";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { AdminModal } from "@/components/admin/AdminModal";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -14,7 +15,14 @@ import { toast } from "sonner";
 const statuses = ["New", "Contacted", "In Review", "Quoted", "Confirmed", "In Production", "Completed"] as const;
 
 export default function CustomArtworkPage() {
+  const { data: mockCustomArtworkRequests } = useApi('/custom-requests');
   const [requests, setRequests] = useState<CustomArtworkRequest[]>(mockCustomArtworkRequests);
+  useEffect(() => {
+    if (mockCustomArtworkRequests && mockCustomArtworkRequests.length > 0) {
+      setRequests(mockCustomArtworkRequests);
+    }
+  }, [mockCustomArtworkRequests]);
+
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [selected, setSelected] = useState<CustomArtworkRequest | null>(null);
@@ -25,13 +33,23 @@ export default function CustomArtworkPage() {
     return matchSearch && matchStatus;
   });
 
-  const updateStatus = (id: string, status: CustomArtworkRequest["status"]) => {
-    setRequests((prev) => prev.map((r) => r.id === id ? { ...r, status } : r));
-    if (selected?.id === id) setSelected({ ...selected!, status });
-    toast.success(`Status updated to ${status}`);
+  const updateStatus = async (id: string, status: CustomArtworkRequest["status"]) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/custom-requests/${id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      if (!res.ok) throw new Error('Failed to update');
+      setRequests((prev) => prev.map((r) => r.id === id ? { ...r, status } : r));
+      if (selected?.id === id) setSelected({ ...selected!, status });
+      toast.success(`Status updated to ${status}`);
+    } catch (err) {
+      toast.error("Failed to update status");
+    }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     setRequests((prev) => prev.filter((r) => r.id !== id));
     if (selected?.id === id) setSelected(null);
     toast.success("Request deleted");

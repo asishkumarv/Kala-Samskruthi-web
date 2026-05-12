@@ -1,3 +1,4 @@
+import { useArtworks } from "@/hooks/useArtworks";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Minus, Plus, Trash2, Tag } from "lucide-react";
@@ -6,11 +7,12 @@ import { coupons } from "@/data/artworks";
 
 
 const Cart = () => {
+  const { data: artworks } = useArtworks();
   const { cart, removeFromCart, addToCart, updateQuantity } = useCart();
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
 
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = cart.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
   const discountAmount = appliedCoupon ? Math.round(subtotal * (appliedCoupon.discount / 100)) : 0;
   const total = subtotal - discountAmount;
 
@@ -62,7 +64,7 @@ const Cart = () => {
                 <div className="flex-1 min-w-0">
                   <h3 className="font-display text-lg truncate">{item.name}</h3>
                   <p className="text-sm text-muted-foreground font-body">by {item.artist} · Standard</p>
-                  <p className="text-accent font-display text-lg mt-1">₹{item.price.toLocaleString()}</p>
+                  <p className="text-accent font-display text-lg mt-1">₹{(item.price || 0).toLocaleString()}</p>
                   <div className="flex items-center gap-2 mt-2">
                     <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="h-8 w-8 border border-border rounded flex items-center justify-center hover:bg-muted transition-colors">
                       <Minus className="h-4 w-4" />

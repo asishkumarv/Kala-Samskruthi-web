@@ -33,6 +33,49 @@ const UploadWallArt = () => {
   // Track which dimension user is actively editing to lock aspect ratio
   const lockRef = useRef<"w" | "h" | null>(null);
 
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookingForm, setBookingForm] = useState({
+    customerName: "",
+    email: "",
+    phone: "",
+    address: "",
+    artworkDetails: "",
+    colorPreferences: ""
+  });
+
+  const handleBookingFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setBookingForm({ ...bookingForm, [e.target.name]: e.target.value });
+  };
+
+  const handleBookingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('http://localhost:5000/api/custom-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...bookingForm,
+          preferredSize: `${width} ${unit} x ${height} ${unit}`,
+          material: material,
+          status: 'New'
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to submit request');
+      
+      alert('Custom artwork request submitted successfully!');
+      setShowBookingModal(false);
+      setBookingForm({ customerName: "", email: "", phone: "", address: "", artworkDetails: "", colorPreferences: "" });
+    } catch (error) {
+      console.error(error);
+      alert('Failed to submit request. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const resetCanvas = () => {
     setArtPos({ x: 0, y: 0 });
     setArtScale(1);
@@ -342,7 +385,7 @@ const UploadWallArt = () => {
             {/* Bottom buttons */}
             <div className="flex flex-wrap gap-3 justify-center">
               <button
-                onClick={() => window.open("https://wa.me/918121341742?text=I%20want%20to%20book%20this%20artwork", "_blank")}
+                onClick={() => setShowBookingModal(true)}
                 className={btnPrimaryClass}
               >
                 Book This Artwork
@@ -354,6 +397,44 @@ const UploadWallArt = () => {
           </motion.div>
         </div>
       </div>
+
+      {showBookingModal && (
+        <div className="fixed inset-0 z-50 bg-foreground/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-xl p-6 max-w-md w-full shadow-2xl overflow-y-auto max-h-[90vh]">
+            <h2 className="font-display text-2xl mb-4 text-foreground">Submit Custom Request</h2>
+            <form onSubmit={handleBookingSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Name</label>
+                <input required type="text" name="customerName" className="w-full p-2 rounded border bg-background" onChange={handleBookingFormChange} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Email</label>
+                <input required type="email" name="email" className="w-full p-2 rounded border bg-background" onChange={handleBookingFormChange} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Phone</label>
+                <input required type="tel" name="phone" className="w-full p-2 rounded border bg-background" onChange={handleBookingFormChange} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Address</label>
+                <textarea required name="address" className="w-full p-2 rounded border bg-background" rows={2} onChange={handleBookingFormChange}></textarea>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Artwork Details / Notes</label>
+                <textarea required name="artworkDetails" className="w-full p-2 rounded border bg-background" rows={2} onChange={handleBookingFormChange}></textarea>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Color Preferences</label>
+                <input type="text" name="colorPreferences" className="w-full p-2 rounded border bg-background" onChange={handleBookingFormChange} />
+              </div>
+              <div className="flex justify-end gap-3 mt-6">
+                <button type="button" onClick={() => setShowBookingModal(false)} className="px-4 py-2 border rounded">Cancel</button>
+                <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-accent text-accent-foreground rounded">{isSubmitting ? 'Submitting...' : 'Submit Request'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

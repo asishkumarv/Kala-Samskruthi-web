@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { mockTestimonials, Testimonial } from "@/data/mockData";
 import { AdminModal } from "@/components/admin/AdminModal";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -14,29 +14,84 @@ import { toast } from "sonner";
 
 export default function TestimonialsPage() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>(mockTestimonials);
+  useEffect(() => {
+    fetch('http://localhost:5000/api/reviews')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.length > 0) setTestimonials(data);
+        else if (mockTestimonials && mockTestimonials.length > 0) setTestimonials(mockTestimonials);
+      })
+      .catch(err => {
+        console.error(err);
+        if (mockTestimonials && mockTestimonials.length > 0) setTestimonials(mockTestimonials);
+      });
+  }, [mockTestimonials]);
+
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState({ customerName: "", rating: 5, text: "", featured: false });
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!form.customerName || !form.text) { toast.error("Name and text required"); return; }
-    setTestimonials((prev) => [...prev, { id: String(Date.now()), ...form, approved: true, createdAt: new Date().toISOString().split("T")[0] }]);
-    setModalOpen(false);
-    toast.success("Testimonial added");
+    try {
+      const res = await fetch('http://localhost:5000/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, comment: form.text, date: new Date().toISOString(), approved: true })
+      });
+      if (!res.ok) throw new Error('Failed');
+      const newReview = await res.json();
+      setTestimonials((prev) => [...prev, newReview]);
+      setModalOpen(false);
+      toast.success("Testimonial added");
+    } catch (err) {
+      toast.error("Error adding testimonial");
+      console.error(err);
+    }
   };
 
-  const toggleApproval = (id: string) => {
-    setTestimonials((prev) => prev.map((t) => t.id === id ? { ...t, approved: !t.approved } : t));
-    toast.success("Status updated");
+  const toggleApproval = async (id: string) => {
+    const t = testimonials.find(t => t.id === id);
+    if (!t) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/reviews/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ approved: !t.approved })
+      });
+      if (!res.ok) throw new Error('Failed');
+      setTestimonials((prev) => prev.map((t) => t.id === id ? { ...t, approved: !t.approved } : t));
+      toast.success("Status updated");
+    } catch (err) {
+      toast.error("Error updating");
+    }
   };
 
-  const toggleFeatured = (id: string) => {
-    setTestimonials((prev) => prev.map((t) => t.id === id ? { ...t, featured: !t.featured } : t));
-    toast.success("Featured status updated");
+  const toggleFeatured = async (id: string) => {
+    const t = testimonials.find(t => t.id === id);
+    if (!t) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/reviews/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ featured: !t.featured })
+      });
+      if (!res.ok) throw new Error('Failed');
+      setTestimonials((prev) => prev.map((t) => t.id === id ? { ...t, featured: !t.featured } : t));
+      toast.success("Featured status updated");
+    } catch (err) {
+      toast.error("Error updating");
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setTestimonials((prev) => prev.filter((t) => t.id !== id));
-    toast.success("Testimonial deleted");
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/reviews/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed');
+      setTestimonials((prev) => prev.filter((t) => t.id !== id));
+      toast.success("Testimonial deleted");
+    } catch (err) {
+      toast.error("Error deleting");
+    }
   };
 
   return (
@@ -75,7 +130,7 @@ export default function TestimonialsPage() {
                       ))}
                     </div>
                   </TableCell>
-                  <TableCell className="hidden md:table-cell max-w-[300px] truncate">{t.text}</TableCell>
+                  <TableCell className="hidden md:table-cell max-w-[300px] truncate">{t.comment || t.text}</TableCell>
                   <TableCell>
                     <Badge variant={t.approved ? "default" : "secondary"} className={t.approved ? "bg-success text-success-foreground" : ""}>
                       {t.approved ? "Approved" : "Pending"}

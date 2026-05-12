@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { mockArtworkVideos, ArtworkVideo } from "@/data/mockData";
+import { useApi } from "@/hooks/useApi";
+import { useState, useEffect } from "react";
+import {  ArtworkVideo } from "@/data/mockData";
 import { AdminModal } from "@/components/admin/AdminModal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,14 @@ function getYouTubeId(url: string) {
 }
 
 export default function VideosPage() {
+  const { data: mockArtworkVideos } = useApi('/videos');
   const [videos, setVideos] = useState<ArtworkVideo[]>(mockArtworkVideos);
+  useEffect(() => {
+    if (mockArtworkVideos && mockArtworkVideos.length > 0) {
+      setVideos(mockArtworkVideos);
+    }
+  }, [mockArtworkVideos]);
+
   const [filterCat, setFilterCat] = useState<string>("all");
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -34,29 +42,93 @@ export default function VideosPage() {
     setModalOpen(true);
   };
 
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 50 * 1024 * 1024) { // 50MB limit
+        toast.error("Video size too large (max 50MB)");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setForm({ ...form, videoUrl: reader.result as string });
+        toast.info("Video file loaded");
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error("Image size too large (max 5MB)");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setForm({ ...form, thumbnailUrl: reader.result as string });
+        toast.info("Thumbnail image loaded");
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const openEdit = (v: ArtworkVideo) => {
     setForm({ title: v.title, category: v.category, videoUrl: v.videoUrl, thumbnailUrl: v.thumbnailUrl, featured: v.featured });
     setEditId(v.id);
     setModalOpen(true);
   };
 
-  const handleSave = () => {
-    if (!form.title || !form.videoUrl) { toast.error("Title and video URL required"); return; }
-    const ytId = getYouTubeId(form.videoUrl);
-    const thumb = form.thumbnailUrl || (ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : "");
-    if (editId) {
-      setVideos((prev) => prev.map((v) => v.id === editId ? { ...v, ...form, thumbnailUrl: thumb } : v));
-      toast.success("Video updated");
-    } else {
-      setVideos((prev) => [...prev, { id: String(Date.now()), ...form, thumbnailUrl: thumb, createdAt: new Date().toISOString().split("T")[0] }]);
-      toast.success("Video added");
+  const handleSave = async () => {
+    if (!form.title || !form.videoUrl) { toast.error("Title and Video URL required"); return; }
+    
+    // Auto-generate YouTube thumbnail ONLY if no thumbnail is already provided
+    let thumb = form.thumbnailUrl || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe";
+    if (!form.thumbnailUrl && (form.videoUrl.includes("youtube.com") || form.videoUrl.includes("youtu.be"))) {
+      const match = form.videoUrl.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+      if (match && match[1]) {
+        thumb = `https://img.youtube.com/vi/${match[1]}/maxresdefault.jpg`;
+      }
     }
-    setModalOpen(false);
+
+    try {
+      if (editId) {
+        const res = await fetch(`http://localhost:5000/api/videos/${editId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...form, thumbnailUrl: thumb })
+        });
+        if (!res.ok) throw new Error('Failed to update');
+        setVideos((prev) => prev.map((v) => v.id === editId ? { ...v, ...form, thumbnailUrl: thumb } : v));
+        toast.success("Video updated");
+      } else {
+        const res = await fetch('http://localhost:5000/api/videos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...form, thumbnailUrl: thumb })
+        });
+        if (!res.ok) throw new Error('Failed to create');
+        const newVideo = await res.json();
+        setVideos((prev) => [...prev, newVideo]);
+        toast.success("Video added");
+      }
+      setModalOpen(false);
+    } catch (err) {
+      toast.error("Failed to save video");
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setVideos((prev) => prev.filter((v) => v.id !== id));
-    toast.success("Video deleted");
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/videos/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete');
+      setVideos((prev) => prev.filter((v) => v.id !== id));
+      toast.success("Video deleted");
+    } catch (err) {
+      toast.error("Failed to delete video");
+      console.error(err);
+    }
   };
 
   return (
@@ -122,12 +194,18 @@ export default function VideosPage() {
             <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Video title" />
           </div>
           <div className="grid gap-2">
-            <Label>Video URL (YouTube or direct)</Label>
-            <Input value={form.videoUrl} onChange={(e) => setForm({ ...form, videoUrl: e.target.value })} placeholder="https://youtube.com/watch?v=..." />
+            <Label>Video (Upload or URL)</Label>
+            <div className="flex gap-2">
+              <Input type="file" accept="video/*" onChange={handleVideoUpload} className="flex-1" />
+            </div>
+            <Input value={form.videoUrl} onChange={(e) => setForm({ ...form, videoUrl: e.target.value })} placeholder="Or paste YouTube/Video URL..." />
           </div>
           <div className="grid gap-2">
-            <Label>Thumbnail URL (auto-generated for YouTube)</Label>
-            <Input value={form.thumbnailUrl} onChange={(e) => setForm({ ...form, thumbnailUrl: e.target.value })} placeholder="https://..." />
+            <Label>Thumbnail (Upload or URL)</Label>
+            <div className="flex gap-2">
+              <Input type="file" accept="image/*" onChange={handleThumbnailUpload} className="flex-1" />
+            </div>
+            <Input value={form.thumbnailUrl} onChange={(e) => setForm({ ...form, thumbnailUrl: e.target.value })} placeholder="Or paste image URL..." />
           </div>
           <div className="grid gap-2">
             <Label>Category</Label>

@@ -1,3 +1,4 @@
+import { useArtworks } from "@/hooks/useArtworks";
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Artwork } from "@/data/artworks";
 import { useAuth } from "@/context/AuthContext";
@@ -21,6 +22,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 const getWishlistKey = (email: string) => `wishlist_${email}`;
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
+  const { data: artworks } = useArtworks();
   const { user } = useAuth();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<number[]>([]);

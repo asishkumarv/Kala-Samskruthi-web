@@ -13,6 +13,10 @@ const adapter = new adapter_pg_1.PrismaPg(pool);
 const prisma = new client_1.PrismaClient({ adapter });
 async function main() {
     console.log('Seeding data...');
+    await prisma.orderItem.deleteMany();
+    await prisma.order.deleteMany();
+    await prisma.review.deleteMany();
+    await prisma.product.deleteMany();
     // Mock Products (from kala controlpanel)
     const products = [
         { name: "Ram Darbar Relief", price: 35999, dimensions: "36×48 inches", thickness: "3 inch", material: "MDF", category: "Relief Sculpture", description: "Handcrafted Ram Darbar relief sculpture with intricate detailing.", featured: true, customizable: true, stock: 2, rating: 4.9 },
@@ -21,6 +25,18 @@ async function main() {
     for (const product of products) {
         await prisma.product.create({
             data: product
+        });
+    }
+    // Mock Reviews
+    const reviews = [
+        { id: "1", customerName: "Deepa Menon", rating: 5, comment: "Absolutely stunning artwork! The Ram Darbar relief is a masterpiece. Everyone who visits our home admires it.", featured: true, approved: true },
+        { id: "2", customerName: "Rajesh Gupta", rating: 5, comment: "Exceptional quality and craftsmanship. The 3D effect is breathtaking.", featured: true, approved: true },
+        { id: "3", customerName: "Kavitha S", rating: 4, comment: "Beautiful artwork, delivered on time. Slightly smaller than expected but quality is amazing.", featured: false, approved: true },
+        { id: "4", customerName: "New Customer", rating: 3, comment: "Good product but packaging could be better.", featured: false, approved: false },
+    ];
+    for (const review of reviews) {
+        await prisma.review.create({
+            data: review
         });
     }
     console.log('Database seeded successfully!');

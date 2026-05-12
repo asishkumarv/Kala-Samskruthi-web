@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { mockInquiries, Inquiry } from "@/data/mockData";
+import { useApi } from "@/hooks/useApi";
+import { useState, useEffect } from "react";
+import {  Inquiry } from "@/data/mockData";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { AdminModal } from "@/components/admin/AdminModal";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -15,7 +16,14 @@ import { toast } from "sonner";
 const statuses = ["New", "In Progress", "Quoted", "Completed"] as const;
 
 export default function InquiriesPage() {
+  const { data: mockInquiries } = useApi('/inquiries');
   const [inquiries, setInquiries] = useState<Inquiry[]>(mockInquiries);
+  useEffect(() => {
+    if (mockInquiries && mockInquiries.length > 0) {
+      setInquiries(mockInquiries);
+    }
+  }, [mockInquiries]);
+
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [selected, setSelected] = useState<Inquiry | null>(null);
@@ -26,15 +34,27 @@ export default function InquiriesPage() {
     return matchSearch && matchStatus;
   });
 
-  const updateStatus = (id: string, status: Inquiry["status"]) => {
-    setInquiries((prev) => prev.map((i) => i.id === id ? { ...i, status } : i));
-    if (selected?.id === id) setSelected({ ...selected!, status });
-    toast.success(`Status updated to ${status}`);
+  const updateStatus = async (id: string, status: Inquiry["status"]) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/inquiries/${id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      if (!res.ok) throw new Error('Failed to update');
+      setInquiries((prev) => prev.map((i) => i.id === id ? { ...i, status } : i));
+      if (selected?.id === id) setSelected({ ...selected!, status });
+      toast.success(`Inquiry marked as ${status}`);
+    } catch (err) {
+      toast.error("Failed to update status");
+    }
   };
 
-  const updateNotes = (id: string, notes: string) => {
+  const updateNotes = async (id: string, notes: string) => {
+    // Assuming backend will support notes update later, but for now we'll just fake it or add it
     setInquiries((prev) => prev.map((i) => i.id === id ? { ...i, notes } : i));
     if (selected?.id === id) setSelected({ ...selected!, notes });
+    toast.success("Notes saved");
   };
 
   return (

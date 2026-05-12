@@ -1,3 +1,4 @@
+import { useArtworks } from "@/hooks/useArtworks";
 import { Heart, ShoppingCart, Star, Zap } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Artwork } from "@/data/artworks";
@@ -10,10 +11,13 @@ type Props = {
 };
 
 const ArtCard = ({ artwork, showDiscount = false }: Props) => {
+  const { data: artworks } = useArtworks();
   const { addToCart, toggleWishlist, wishlist } = useCart();
   const navigate = useNavigate();
   const isWished = wishlist.includes(artwork.id);
-  const discount = Math.round(((artwork.originalPrice - artwork.price) / artwork.originalPrice) * 100);
+  const price = artwork.price || 0;
+  const originalPrice = artwork.originalPrice || price;
+  const discount = originalPrice > 0 ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
 
   return (
     <motion.div
@@ -66,9 +70,9 @@ const ArtCard = ({ artwork, showDiscount = false }: Props) => {
         </p>
         <div className="flex items-center justify-between mt-3">
           <div className="flex items-baseline gap-2">
-            <span className="font-display text-lg text-accent">₹{artwork.price.toLocaleString()}</span>
-            {showDiscount && (
-              <span className="text-sm text-muted-foreground line-through">₹{artwork.originalPrice.toLocaleString()}</span>
+            <span className="font-display text-lg text-accent">₹{price.toLocaleString()}</span>
+            {showDiscount && originalPrice > price && (
+              <span className="text-sm text-muted-foreground line-through">₹{originalPrice.toLocaleString()}</span>
             )}
           </div>
           <div className="flex items-center gap-1 text-accent">

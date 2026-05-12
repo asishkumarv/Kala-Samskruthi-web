@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,13 +12,22 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email === "admin@kalasamskruthi.com" && password === "admin123") {
-      toast.success("Welcome back!");
-      navigate("/admin");
-    } else {
-      toast.error("Invalid credentials. Use admin@kalasamskruthi.com / admin123");
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/admin-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      if (res.ok) {
+        toast.success("Welcome back!");
+        navigate("/admin");
+      } else {
+        toast.error("Invalid credentials.");
+      }
+    } catch (error) {
+      toast.error("Login failed.");
     }
   };
 

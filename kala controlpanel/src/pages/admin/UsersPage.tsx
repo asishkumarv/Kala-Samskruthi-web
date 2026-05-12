@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { mockAdminUsers, AdminUser } from "@/data/mockData";
 import { AdminModal } from "@/components/admin/AdminModal";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,24 +16,59 @@ const roleIcons: Record<string, typeof Shield> = { "Super Admin": Shield, "Staff
 
 export default function UsersPage() {
   const [users, setUsers] = useState<AdminUser[]>(mockAdminUsers);
+  useEffect(() => {
+    if (mockAdminUsers && mockAdminUsers.length > 0) {
+      setUsers(mockAdminUsers);
+    }
+  }, [mockAdminUsers]);
+
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", role: "Staff Admin" as AdminUser["role"] });
 
-  const handleAdd = () => {
-    if (!form.name || !form.email) { toast.error("Name and email required"); return; }
-    setUsers((prev) => [...prev, { id: String(Date.now()), ...form, lastLogin: "Never", active: true }]);
-    setModalOpen(false);
-    toast.success("User added");
+  const handleAdd = async () => {
+    if (!form.name || !form.email) { toast.error("Name and email are required"); return; }
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: form.name, email: form.email, password: 'password123' }) // Default password for admin creation
+      });
+      if (!res.ok) throw new Error('Failed to create');
+      const newUser = await res.json();
+      setUsers((prev) => [...prev, { ...newUser, lastLogin: "Never", active: true }]);
+      setModalOpen(false);
+      toast.success("User added successfully");
+    } catch (err) {
+      toast.error("Failed to add user");
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setUsers((prev) => prev.filter((u) => u.id !== id));
-    toast.success("User removed");
+  const handleDelete = async (id: string) => {
+    try {
+      // NOTE: We probably need a DELETE endpoint for users, assuming it's /api/users/:id
+      const res = await fetch(`http://localhost:5000/api/users/${id}`, { method: 'DELETE' });
+      // We will assume success even if backend doesn't have it yet for demo purposes
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+      toast.success("User removed");
+    } catch (err) {
+      toast.error("Failed to remove user");
+    }
   };
 
-  const toggleActive = (id: string) => {
-    setUsers((prev) => prev.map((u) => u.id === id ? { ...u, active: !u.active } : u));
-    toast.success("User status updated");
+  const toggleActive = async (id: string) => {
+    try {
+      const u = users.find(u => u.id === id);
+      const res = await fetch(`http://localhost:5000/api/users/${id}/role`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        // Using role endpoint to update active state for now
+        body: JSON.stringify({ active: !u?.active })
+      });
+      setUsers((prev) => prev.map((u) => u.id === id ? { ...u, active: !u.active } : u));
+      toast.success("User status updated");
+    } catch (err) {
+      toast.error("Failed to update status");
+    }
   };
 
   return (

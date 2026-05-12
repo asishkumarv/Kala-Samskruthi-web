@@ -7,9 +7,13 @@ export interface Product {
   material: "MDF" | "HDHMR" | "WAPC" | "Sculpture";
   category: string;
   description: string;
+  image?: string;
   images: string[];
   featured: boolean;
   customizable: boolean;
+  rating?: number;
+  stock?: number;
+  artist?: string;
   createdAt: string;
 }
 
@@ -44,7 +48,7 @@ export interface Order {
   email: string;
   phone: string;
   address: string;
-  items: { productName: string; productImage: string; quantity: number; size: string; material: string; price: number }[];
+  items: { productId?: string; productName: string; productImage: string; quantity: number; size: string; material: string; price: number }[];
   total: number;
   paymentMethod: string;
   paymentStatus: "Paid" | "Pending" | "Failed";

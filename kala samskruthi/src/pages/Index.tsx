@@ -3,7 +3,9 @@ import { ArrowRight, Play, Star, Quote } from "lucide-react";
 import { motion } from "framer-motion";
 import heroBg from "@/assets/hero-bg.jpg";
 import artistImg from "@/assets/artist.jpg";
-import { artworks } from "@/data/artworks";
+import { useArtworks } from "@/hooks/useArtworks";
+import { useReviews } from "@/hooks/useReviews";
+import { useSiteContent } from "@/hooks/useSiteContent";
 import ArtCard from "@/components/ArtCard";
 import { Input } from "@/components/ui/input";
 
@@ -11,12 +13,6 @@ const stats = [
   { value: "500+", label: "Artworks" },
   { value: "200+", label: "Happy Clients" },
   { value: "15+", label: "Art Styles" },
-];
-
-const testimonials = [
-  { text: "The Tanjore painting I received is absolutely breathtaking. The gold leaf work is exquisite and it's now the centerpiece of my living room.", name: "Anita Desai", city: "Mumbai" },
-  { text: "Incredible craftsmanship! The Madhubani art piece I ordered exceeded all expectations. The colors are vibrant and the details are remarkable.", name: "Rajesh Kumar", city: "Delhi" },
-  { text: "I've been collecting traditional art for years, and Kalā Samskruthi stands out for their authenticity and quality. Highly recommended!", name: "Priyanka Nair", city: "Kochi" },
 ];
 
 const aboutStats = [
@@ -27,6 +23,23 @@ const aboutStats = [
 ];
 
 const Index = () => {
+  const { data: artworks } = useArtworks();
+  const { data: dbReviews, loading: reviewsLoading } = useReviews();
+  const { data: siteContent } = useSiteContent();
+
+  const featuredReviews = (dbReviews || []).filter(r => r.approved && r.featured).slice(0, 3);
+  
+  // If no featured reviews, use any approved reviews, otherwise use hardcoded ones
+  const backupReviews = (dbReviews || []).filter(r => r.approved).slice(0, 3);
+  
+  const displayReviews = featuredReviews.length > 0 
+    ? featuredReviews 
+    : (backupReviews.length > 0 ? backupReviews : [
+      { text: "The Tanjore painting I received is absolutely breathtaking. The gold leaf work is exquisite and it's now the centerpiece of my living room.", name: "Anita Desai", city: "Mumbai" },
+      { text: "Incredible craftsmanship! The Madhubani art piece I ordered exceeded all expectations. The colors are vibrant and the details are remarkable.", name: "Rajesh Kumar", city: "Delhi" },
+      { text: "I've been collecting traditional art for years, and Kalā Samskruthi stands out for their authenticity and quality. Highly recommended!", name: "Priyanka Nair", city: "Kochi" },
+    ]);
+
   return (
     <div>
       {/* Hero */}
@@ -50,7 +63,7 @@ const Index = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="font-display text-4xl md:text-6xl lg:text-7xl text-primary-foreground leading-tight"
           >
-            Experience the <em className="text-accent italic">Beauty</em> of Traditional Art
+            {siteContent?.homepageText ? siteContent.homepageText.split('.')[0] + '.' : "Experience the Beauty of Traditional Art."}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -58,7 +71,7 @@ const Index = () => {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="text-primary-foreground/80 mt-6 text-lg font-body font-light max-w-xl mx-auto"
           >
-            Discover exquisite handmade moral arts that celebrate India's rich cultural heritage. Each piece is a unique masterpiece, crafted with passion and tradition.
+            {siteContent?.homepageText || "Discover exquisite handmade moral arts that celebrate India's rich cultural heritage. Each piece is a unique masterpiece, crafted with passion and tradition."}
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -175,7 +188,7 @@ const Index = () => {
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((t, i) => (
+            {displayReviews.map((t, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
@@ -185,14 +198,14 @@ const Index = () => {
                 className="glass-card rounded-lg p-6"
               >
                 <Quote className="h-8 w-8 text-accent/30 mb-3" />
-                <p className="text-foreground/80 font-body text-sm leading-relaxed italic">"{t.text}"</p>
+                <p className="text-foreground/80 font-body text-sm leading-relaxed italic">"{t.comment || t.text}"</p>
                 <div className="mt-4 flex items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-accent/20 flex items-center justify-center font-display text-accent">
-                    {t.name[0]}
+                    {(t.customerName || t.name)[0]}
                   </div>
                   <div>
-                    <p className="font-body font-medium text-sm">{t.name}</p>
-                    <p className="text-xs text-muted-foreground font-body">{t.city}</p>
+                    <p className="font-body font-medium text-sm">{t.customerName || t.name}</p>
+                    <p className="text-xs text-muted-foreground font-body">{t.city || "Verified Buyer"}</p>
                   </div>
                 </div>
               </motion.div>

@@ -8,10 +8,36 @@ import { useState } from "react";
 const Contact = () => {
   const [form, setForm] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
-    setForm({ name: "", email: "", phone: "", subject: "", message: "" });
+    try {
+      const response = await fetch('http://localhost:5000/api/inquiries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName: form.name,
+          email: form.email,
+          phone: form.phone,
+          designPreference: form.subject, // Map subject to designPreference or similar
+          message: form.message,
+          status: 'New'
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to send message');
+      
+      alert('Message sent successfully!');
+      setForm({ name: "", email: "", phone: "", subject: "", message: "" });
+    } catch (error) {
+      console.error(error);
+      alert('Failed to send message. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -57,9 +83,10 @@ const Contact = () => {
             </div>
             <button
               type="submit"
-              className="w-full bg-accent text-accent-foreground py-3 rounded font-body font-medium hover:brightness-110 transition-all flex items-center justify-center gap-2"
+              disabled={isSubmitting}
+              className="w-full bg-accent text-accent-foreground py-3 rounded font-body font-medium hover:brightness-110 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              <Send className="h-4 w-4" /> Send Message
+              <Send className="h-4 w-4" /> {isSubmitting ? 'Sending...' : 'Send Message'}
             </button>
           </motion.form>
 

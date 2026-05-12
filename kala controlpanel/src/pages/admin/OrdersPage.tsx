@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { mockOrders, Order } from "@/data/mockData";
+import { useApi } from "@/hooks/useApi";
+import { useState, useEffect } from "react";
+import {  Order } from "@/data/mockData";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { AdminModal } from "@/components/admin/AdminModal";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -14,7 +15,14 @@ import { toast } from "sonner";
 const orderStatuses = ["Received", "Processing", "Shipped", "Delivered", "Cancelled"] as const;
 
 export default function OrdersPage() {
+  const { data: mockOrders } = useApi('/orders');
   const [orders, setOrders] = useState<Order[]>(mockOrders);
+  useEffect(() => {
+    if (mockOrders && mockOrders.length > 0) {
+      setOrders(mockOrders);
+    }
+  }, [mockOrders]);
+
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [selected, setSelected] = useState<Order | null>(null);
@@ -25,10 +33,21 @@ export default function OrdersPage() {
     return matchSearch && matchStatus;
   });
 
-  const updateStatus = (id: string, status: Order["status"]) => {
-    setOrders((prev) => prev.map((o) => o.id === id ? { ...o, status } : o));
-    if (selected?.id === id) setSelected({ ...selected!, status });
-    toast.success(`Order status updated to ${status}`);
+  const updateStatus = async (id: string, status: Order["status"]) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/orders/${id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      if (!res.ok) throw new Error('Failed to update');
+      setOrders((prev) => prev.map((o) => o.id === id ? { ...o, status } : o));
+      if (selected?.id === id) setSelected({ ...selected!, status });
+      toast.success(`Order status updated to ${status}`);
+    } catch (err) {
+      toast.error("Failed to update status");
+      console.error(err);
+    }
   };
 
   return (

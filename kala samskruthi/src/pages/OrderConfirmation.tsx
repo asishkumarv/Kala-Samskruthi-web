@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useParams, useLocation, Link } from "react-router-dom";
 import { CheckCircle, MapPin, Package, Clock, ShoppingBag, PackageCheck, Truck, Home, CircleCheck } from "lucide-react";
 import { motion } from "framer-motion";
@@ -14,7 +15,23 @@ const timelineSteps = [
 const OrderConfirmation = () => {
   const { orderId } = useParams();
   const location = useLocation();
-  const state = location.state as { items?: any[]; address?: any; total?: number; paymentMethod?: string } | null;
+  const [orderDetails, setOrderDetails] = useState<any>(location.state || null);
+  const [loading, setLoading] = useState(!location.state);
+
+  useEffect(() => {
+    if (!orderDetails && orderId) {
+      fetch(`http://localhost:5000/api/orders/${orderId}`)
+        .then(res => res.json())
+        .then(data => {
+          setOrderDetails(data);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error(err);
+          setLoading(false);
+        });
+    }
+  }, [orderId, orderDetails]);
 
   return (
     <div className="pt-20 min-h-screen">
@@ -36,9 +53,9 @@ const OrderConfirmation = () => {
             </div>
           </div>
 
-          {state?.items && (
+          {orderDetails?.items && (
             <div className="space-y-3 border-t border-border pt-4">
-              {state.items.map((item: any) => (
+              {orderDetails.items.map((item: any) => (
                 <div key={item.id} className="flex items-center gap-3">
                   <img src={item.image} alt={item.name} className="w-14 h-14 object-cover rounded" />
                   <div>
@@ -50,24 +67,24 @@ const OrderConfirmation = () => {
             </div>
           )}
 
-          {state?.address && (
+          {orderDetails?.address && (
             <div className="border-t border-border pt-4 mt-4">
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-accent mt-0.5" />
                 <div>
                   <p className="text-xs uppercase tracking-wider text-muted-foreground font-body">Delivery Address</p>
                   <p className="font-body text-sm mt-1">
-                    {state.address.name}, {state.address.address}, {state.address.city}, {state.address.state} - {state.address.pincode}
+                    {orderDetails.address.name}, {orderDetails.address.address}, {orderDetails.address.city}, {orderDetails.address.state} - {orderDetails.address.pincode}
                   </p>
                 </div>
               </div>
             </div>
           )}
 
-          {state?.total && (
+          {orderDetails?.total && (
             <div className="border-t border-border pt-4 mt-4 flex justify-between items-center">
               <span className="font-display text-lg">Total Paid</span>
-              <span className="font-display text-xl text-accent">₹{state.total.toLocaleString()}</span>
+              <span className="font-display text-xl text-accent">₹{orderDetails.total.toLocaleString()}</span>
             </div>
           )}
         </div>
@@ -118,7 +135,7 @@ const OrderConfirmation = () => {
           </Link>
           <Link
             to={`/track-order/${orderId}`}
-            state={{ items: state?.items, total: state?.total }}
+            state={{ items: orderDetails?.items, total: orderDetails?.total }}
             className="inline-block border border-accent text-accent px-8 py-3 rounded font-body font-medium hover:bg-accent/10 transition-all text-center"
           >
             Track Order

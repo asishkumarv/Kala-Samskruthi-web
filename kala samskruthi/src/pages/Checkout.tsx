@@ -1,3 +1,4 @@
+import { useArtworks } from "@/hooks/useArtworks";
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, MapPin, CreditCard, Tag, CheckCircle } from "lucide-react";
@@ -6,6 +7,7 @@ import { Artwork, coupons } from "@/data/artworks";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Checkout = () => {
+  const { data: artworks } = useArtworks();
   const { cart, clearCart } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
@@ -23,7 +25,7 @@ const Checkout = () => {
   const [couponError, setCouponError] = useState("");
   const [couponSuccess, setCouponSuccess] = useState("");
 
-  const subtotal = checkoutItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = checkoutItems.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
   const discountAmount = appliedCoupon ? Math.round(subtotal * (appliedCoupon.discount / 100)) : 0;
   const codCharge = paymentMethod === "cod" ? 50 : 0;
   const total = subtotal - discountAmount + codCharge;
@@ -55,11 +57,42 @@ const Checkout = () => {
     setCouponSuccess("");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const orderId = "KSA-" + Math.random().toString(36).substring(2, 9).toUpperCase();
-    setPendingOrderData({ orderId, items: checkoutItems, address: form, total, paymentMethod });
-    setShowOrderPopup(true);
+    try {
+      const response = await fetch('http://localhost:5000/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName: form.name,
+          phone: form.phone,
+          email: form.email,
+          address: `${form.address}, ${form.city}, ${form.state} - ${form.pincode}`,
+          total: total,
+          paymentMethod: paymentMethod === 'online' ? 'Online' : 'Cash on Delivery',
+          items: checkoutItems.map(item => ({
+            productId: item.id,
+            productName: item.name,
+            quantity: item.quantity,
+            price: item.price || 0,
+            size: item.size || 'Standard',
+            material: item.material || 'Standard',
+            productImage: item.image || (item.images && item.images.length > 0 ? item.images[0] : null)
+          }))
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create order');
+      }
+
+      const newOrder = await response.json();
+      setPendingOrderData({ orderId: newOrder.id, items: checkoutItems, address: form, total, paymentMethod });
+      setShowOrderPopup(true);
+    } catch (error) {
+      console.error(error);
+      alert('Failed to place order. Please try again.');
+    }
   };
 
   const handlePopupClose = () => {
@@ -160,7 +193,7 @@ const Checkout = () => {
                     <div className="min-w-0">
                       <p className="font-body text-sm font-medium truncate">{item.name}</p>
                       <p className="text-xs text-muted-foreground font-body">Qty: {item.quantity}</p>
-                      <p className="text-sm text-accent font-body">₹{(item.price * item.quantity).toLocaleString()}</p>
+                      <p className="text-sm text-accent font-body">₹{((item.price || 0) * item.quantity).toLocaleString()}</p>
                     </div>
                   </div>
                 ))}

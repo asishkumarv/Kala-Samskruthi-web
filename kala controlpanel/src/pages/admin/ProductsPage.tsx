@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { mockProducts, Product } from "@/data/mockData";
+import { useApi } from "@/hooks/useApi";
+import { useState, useEffect } from "react";
+import {  Product } from "@/data/mockData";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { AdminModal } from "@/components/admin/AdminModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,9 +17,17 @@ import { toast } from "sonner";
 
 const materials = ["MDF", "HDHMR", "WAPC", "Sculpture"] as const;
 const thicknessOptions = ["1 inch", "2 inch", "3 inch", "4 inch", "5 inch"];
+const productCategories = ["Relief Sculpture", "3D Mural Art", "Mural Art", "HDHMR Mural Art", "Wood Carving", "Artist Collection"];
 
 export default function ProductsPage() {
+  const { data: mockProducts } = useApi('/products');
   const [products, setProducts] = useState<Product[]>(mockProducts);
+  useEffect(() => {
+    if (mockProducts && mockProducts.length > 0) {
+      setProducts(mockProducts);
+    }
+  }, [mockProducts]);
+
   const [search, setSearch] = useState("");
   const [filterMaterial, setFilterMaterial] = useState<string>("all");
   const [modalOpen, setModalOpen] = useState(false);
@@ -26,9 +35,20 @@ export default function ProductsPage() {
 
   const [form, setForm] = useState({
     name: "", price: "", dimensions: "", thickness: "2 inch",
-    material: "MDF" as Product["material"], category: "", description: "",
-    featured: false, customizable: false,
+    material: "MDF" as Product["material"], category: "3D Mural Art", description: "",
+    featured: false, customizable: false, image: "",
   });
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setForm({ ...form, image: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const filtered = products.filter((p) => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
@@ -38,32 +58,78 @@ export default function ProductsPage() {
 
   const openAdd = () => {
     setEditingProduct(null);
-    setForm({ name: "", price: "", dimensions: "", thickness: "2 inch", material: "MDF", category: "", description: "", featured: false, customizable: false });
+    setForm({ name: "", price: "", dimensions: "", thickness: "2 inch", material: "MDF", category: "3D Mural Art", description: "", featured: false, customizable: false, image: "" });
     setModalOpen(true);
   };
 
   const openEdit = (p: Product) => {
     setEditingProduct(p);
-    setForm({ name: p.name, price: String(p.price), dimensions: p.dimensions, thickness: p.thickness, material: p.material, category: p.category, description: p.description, featured: p.featured, customizable: p.customizable });
+    setForm({ 
+      name: p.name, 
+      price: String(p.price), 
+      dimensions: p.dimensions, 
+      thickness: p.thickness, 
+      material: p.material, 
+      category: p.category, 
+      description: p.description, 
+      featured: p.featured, 
+      customizable: p.customizable,
+      image: p.image || (p.images && p.images.length > 0 ? p.images[0] : "")
+    });
     setModalOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name || !form.price) { toast.error("Name and price are required"); return; }
-    if (editingProduct) {
-      setProducts((prev) => prev.map((p) => p.id === editingProduct.id ? { ...p, ...form, price: Number(form.price) } : p));
-      toast.success("Product updated");
-    } else {
-      const newProduct: Product = { id: String(Date.now()), ...form, price: Number(form.price), images: [], createdAt: new Date().toISOString().split("T")[0] };
-      setProducts((prev) => [...prev, newProduct]);
-      toast.success("Product added");
+    try {
+      const productPayload = {
+        ...form,
+        price: Number(form.price),
+        image: form.image,
+        images: form.image ? [form.image] : [],
+        rating: editingProduct?.rating || 0,
+        stock: editingProduct?.stock || 1,
+        artist: editingProduct?.artist || "Kala Samskruthi Arts"
+      };
+
+      if (editingProduct) {
+        const res = await fetch(`http://localhost:5000/api/products/${editingProduct.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(productPayload)
+        });
+        if (!res.ok) throw new Error('Failed to update product');
+        const updated = await res.json();
+        setProducts((prev) => prev.map((p) => p.id === editingProduct.id ? updated : p));
+        toast.success("Product updated");
+      } else {
+        const res = await fetch('http://localhost:5000/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(productPayload)
+        });
+        if (!res.ok) throw new Error('Failed to add product');
+        const newProduct = await res.json();
+        setProducts((prev) => [...prev, newProduct]);
+        toast.success("Product added");
+      }
+      setModalOpen(false);
+    } catch (err) {
+      toast.error("An error occurred");
+      console.error(err);
     }
-    setModalOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
-    toast.success("Product deleted");
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/products/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete product');
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+      toast.success("Product deleted");
+    } catch (err) {
+      toast.error("Failed to delete");
+      console.error(err);
+    }
   };
 
   return (
@@ -177,9 +243,23 @@ export default function ProductsPage() {
               </Select>
             </div>
           </div>
-          <div className="grid gap-2">
-            <Label>Category</Label>
-            <Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="e.g. 3D Mural Art" />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label>Category</Label>
+              <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{productCategories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>Product Image</Label>
+              <div className="flex items-center gap-2">
+                <Input type="file" accept="image/*" onChange={handleImageUpload} className="text-xs" />
+                {form.image && (
+                  <img src={form.image} alt="Preview" className="h-10 w-10 rounded object-cover border" />
+                )}
+              </div>
+            </div>
           </div>
           <div className="grid gap-2">
             <Label>Description</Label>
