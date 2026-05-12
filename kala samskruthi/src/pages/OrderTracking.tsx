@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useLocation, Link } from "react-router-dom";
-import { Package, ShoppingBag, PackageCheck, Truck, Home, CircleCheck, MapPin, Calendar, ArrowLeft } from "lucide-react";
+import { Package, ShoppingBag, PackageCheck, Truck, Home, CircleCheck, MapPin, Calendar, ArrowLeft, X } from "lucide-react";
 import { motion } from "framer-motion";
 
 const allSteps = [
@@ -44,8 +44,20 @@ const OrderTracking = () => {
     }
   }, [orderId, orderDetails]);
 
-  const currentStep = 1; // 0-indexed: Order Placed (0) and Order Confirmed (1) are done
-  const trackingId = "TRK-" + (orderId?.replace("KSA-", "") || "0000000");
+  const getStatusStep = (status: string) => {
+    switch (status) {
+      case "Received": return 0;
+      case "Processing": return 1;
+      case "Shipped": return 3;
+      case "Delivered": return 5;
+      case "Cancelled": return -1;
+      default: return 0;
+    }
+  };
+
+  const isCancelled = orderDetails?.status === "Cancelled";
+  const currentStep = orderDetails ? getStatusStep(orderDetails.status) : 0;
+  const trackingId = "TRK-" + (orderId?.replace("KSA-", "").slice(0, 8) || "0000000");
 
   const estimatedDate = new Date();
   estimatedDate.setDate(estimatedDate.getDate() + 15);
@@ -85,6 +97,17 @@ const OrderTracking = () => {
         <h1 className="font-display text-3xl md:text-4xl mb-2">Track Your Order</h1>
         <p className="text-muted-foreground font-body mb-8">Stay updated on your order's journey</p>
 
+        {/* Cancelled Alert */}
+        {isCancelled && (
+          <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-5 mb-8 flex items-center gap-3">
+            <X className="h-6 w-6 text-destructive shrink-0" />
+            <div>
+              <p className="font-body font-bold text-lg text-destructive">Order Cancelled</p>
+              <p className="font-body text-sm text-muted-foreground">This order has been cancelled. Please contact support if you have any questions.</p>
+            </div>
+          </div>
+        )}
+
         {/* Order & Tracking Info */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
           <div className="bg-card border border-border rounded-lg p-5">
@@ -103,14 +126,16 @@ const OrderTracking = () => {
           </div>
         </div>
 
-        {/* Estimated Delivery */}
-        <div className="bg-accent/10 border border-accent/30 rounded-lg p-5 mb-8 flex items-center gap-3">
-          <Calendar className="h-6 w-6 text-accent shrink-0" />
-          <div>
-            <p className="font-body font-medium text-sm text-foreground">Estimated Delivery</p>
-            <p className="font-body text-accent font-semibold">{estimatedDelivery}</p>
+        {/* Estimated Delivery (Hidden if cancelled) */}
+        {!isCancelled && (
+          <div className="bg-accent/10 border border-accent/30 rounded-lg p-5 mb-8 flex items-center gap-3">
+            <Calendar className="h-6 w-6 text-accent shrink-0" />
+            <div>
+              <p className="font-body font-medium text-sm text-foreground">Estimated Delivery</p>
+              <p className="font-body text-accent font-semibold">{estimatedDelivery}</p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Order Items */}
         {orderDetails?.items && (
@@ -119,9 +144,9 @@ const OrderTracking = () => {
             <div className="space-y-3">
               {orderDetails.items.map((item: any) => (
                 <div key={item.id} className="flex items-center gap-3">
-                  <img src={item.image} alt={item.name} className="w-14 h-14 object-cover rounded" />
+                  <img src={item.productImage || "/placeholder.svg"} alt={item.productName} className="w-14 h-14 object-cover rounded" />
                   <div className="flex-1 min-w-0">
-                    <p className="font-body text-sm font-medium truncate">{item.name}</p>
+                    <p className="font-body text-sm font-medium truncate">{item.productName}</p>
                     <p className="text-xs text-muted-foreground font-body">Qty: {item.quantity}</p>
                   </div>
                   <p className="font-body text-sm text-accent font-medium">₹{(item.price * item.quantity).toLocaleString()}</p>
@@ -137,10 +162,11 @@ const OrderTracking = () => {
           </div>
         )}
 
-        {/* Full Timeline */}
-        <div className="bg-card border border-border rounded-lg p-6">
-          <h2 className="font-display text-xl mb-6">Order Progress</h2>
-          <div className="relative">
+        {/* Full Timeline (Hidden if cancelled) */}
+        {!isCancelled && (
+          <div className="bg-card border border-border rounded-lg p-6">
+            <h2 className="font-display text-xl mb-6">Order Progress</h2>
+            <div className="relative">
             {allSteps.map((step, index) => {
               const Icon = step.icon;
               const isCompleted = index <= currentStep;
@@ -192,6 +218,7 @@ const OrderTracking = () => {
             })}
           </div>
         </div>
+        )}
 
         <div className="text-center mt-8">
           <Link to="/" className="inline-block bg-accent text-accent-foreground px-8 py-3 rounded font-body font-medium hover:brightness-110 transition-all">
