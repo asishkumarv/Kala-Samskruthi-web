@@ -28,7 +28,7 @@ export default function UsersPage() {
   const handleAdd = async () => {
     if (!form.name || !form.email) { toast.error("Name and email are required"); return; }
     try {
-      const res = await fetch('http://localhost:5000/api/auth/register', {
+      const res = await fetch('https://kala-samskruthi-web.onrender.com/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: form.name, email: form.email, password: 'password123' }) // Default password for admin creation
@@ -46,7 +46,7 @@ export default function UsersPage() {
   const handleDelete = async (id: string) => {
     try {
       // NOTE: We probably need a DELETE endpoint for users, assuming it's /api/users/:id
-      const res = await fetch(`http://localhost:5000/api/users/${id}`, { method: 'DELETE' });
+      const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/users/${id}`, { method: 'DELETE' });
       // We will assume success even if backend doesn't have it yet for demo purposes
       setUsers((prev) => prev.filter((u) => u.id !== id));
       toast.success("User removed");
@@ -58,7 +58,7 @@ export default function UsersPage() {
   const toggleActive = async (id: string) => {
     try {
       const u = users.find(u => u.id === id);
-      const res = await fetch(`http://localhost:5000/api/users/${id}/role`, {
+      const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/users/${id}/role`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         // Using role endpoint to update active state for now

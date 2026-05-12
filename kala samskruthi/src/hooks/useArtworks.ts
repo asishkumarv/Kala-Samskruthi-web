@@ -5,7 +5,7 @@ export const useArtworks = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/products')
+    fetch('https://kala-samskruthi-web.onrender.com/api/products')
       .then((res) => res.json())
       .then((json) => {
         setData(json);

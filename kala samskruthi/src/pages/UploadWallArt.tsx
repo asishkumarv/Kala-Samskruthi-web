@@ -52,13 +52,14 @@ const UploadWallArt = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const response = await fetch('http://localhost:5000/api/custom-requests', {
+      const response = await fetch('https://kala-samskruthi-web.onrender.com/api/custom-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...bookingForm,
           preferredSize: `${width} ${unit} x ${height} ${unit}`,
           material: material,
+          uploadedImageUrl: artworkImage,
           status: 'New'
         })
       });

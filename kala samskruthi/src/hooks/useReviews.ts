@@ -5,7 +5,7 @@ export const useReviews = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/reviews')
+    fetch('https://kala-samskruthi-web.onrender.com/api/reviews')
       .then((res) => res.json())
       .then((json) => {
         setData(json);

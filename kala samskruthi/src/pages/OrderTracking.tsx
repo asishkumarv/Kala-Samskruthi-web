@@ -23,7 +23,7 @@ const OrderTracking = () => {
   useEffect(() => {
     if (!orderDetails && orderId) {
       setLoading(true);
-      fetch(`http://localhost:5000/api/orders/${orderId}`)
+      fetch(`https://kala-samskruthi-web.onrender.com/api/orders/${orderId}`)
         .then(async (res) => {
           if (!res.ok) {
             const err = await res.json();

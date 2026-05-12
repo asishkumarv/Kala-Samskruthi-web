@@ -35,7 +35,7 @@ export default function CustomArtworkPage() {
 
   const updateStatus = async (id: string, status: CustomArtworkRequest["status"]) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/custom-requests/${id}/status`, {
+      const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/custom-requests/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
@@ -167,15 +167,22 @@ export default function CustomArtworkPage() {
               <div><Label className="text-muted-foreground text-xs">Material</Label><p className="font-medium">{selected.material}</p></div>
               <div><Label className="text-muted-foreground text-xs">Color Preferences</Label><p className="font-medium">{selected.colorPreferences}</p></div>
             </div>
-            {selected.uploadedImageUrl && (
-              <div className="border-t pt-4">
-                <Label className="text-muted-foreground text-xs mb-2 block">Uploaded Reference Image</Label>
-                <img src={selected.uploadedImageUrl} alt="Reference" className="w-full max-w-sm rounded-lg border" />
-                <a href={selected.uploadedImageUrl} download className="inline-flex items-center gap-1 mt-2 text-sm text-primary hover:underline">
-                  <Download className="h-3.5 w-3.5" /> Download Image
-                </a>
-              </div>
-            )}
+            <div className="border-t pt-4">
+              <Label className="text-muted-foreground text-xs mb-2 block">Uploaded Reference Image</Label>
+              {selected.uploadedImageUrl ? (
+                <div className="space-y-2">
+                  <img src={selected.uploadedImageUrl} alt="Reference" className="w-full max-w-sm rounded-lg border shadow-sm" />
+                  <a href={selected.uploadedImageUrl} download={`custom_request_${selected.id}.png`} className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
+                    <Download className="h-3.5 w-3.5" /> Download Image
+                  </a>
+                </div>
+              ) : (
+                <div className="p-8 border-2 border-dashed rounded-lg text-center text-muted-foreground">
+                  <Paintbrush className="h-8 w-8 mx-auto mb-2 opacity-20" />
+                  <p className="text-sm">No reference image uploaded</p>
+                </div>
+              )}
+            </div>
             {selected.notes && (
               <div className="border-t pt-4">
                 <Label className="text-muted-foreground text-xs">Notes / Message</Label>

@@ -20,6 +20,13 @@ export default function DashboardPage() {
   const totalVideos = videos.length;
   const totalCustomRequests = customReqs.length;
 
+  // Generate dynamic recent activity feed
+  const recentActivity = [
+    ...orders.map((o: any) => ({ type: "order", text: `New order #${o.id.slice(0, 8)} from ${o.customerName}`, date: new Date(o.createdAt) })),
+    ...mockInquiries.map((i: any) => ({ type: "inquiry", text: `New inquiry from ${i.customerName}`, date: new Date(i.createdAt) })),
+    ...customReqs.map((c: any) => ({ type: "custom", text: `New custom request from ${c.customerName}`, date: new Date(c.createdAt) }))
+  ].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 5);
+
   return (
     <div className="space-y-6">
       <div>
@@ -45,13 +52,20 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-start gap-3 pb-3 border-b last:border-0 last:pb-0">
-                  <div className="mt-1 h-2 w-2 rounded-full shrink-0 bg-success" />
+              {recentActivity.map((act, idx) => (
+                <div key={idx} className="flex items-start gap-3 pb-3 border-b last:border-0 last:pb-0">
+                  <div className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${
+                    act.type === 'order' ? 'bg-blue-500' : act.type === 'inquiry' ? 'bg-amber-500' : 'bg-purple-500'
+                  }`} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm">Activity dynamically loading...</p>
-                    <p className="text-xs text-muted-foreground">Just now</p>
+                    <p className="text-sm font-medium">{act.text}</p>
+                    <p className="text-xs text-muted-foreground">{act.date.toLocaleDateString()} {act.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                   </div>
-              </div>
+                </div>
+              ))}
+              {recentActivity.length === 0 && (
+                <p className="text-sm text-muted-foreground py-4 text-center">No recent activity</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -75,12 +89,19 @@ export default function DashboardPage() {
               <TableBody>
                 {orders.slice(0, 4).map((order: any) => (
                   <TableRow key={order.id}>
-                    <TableCell className="font-medium">{order.id}</TableCell>
+                    <TableCell className="font-medium">{order.id.slice(0, 8)}</TableCell>
                     <TableCell>{order.customerName}</TableCell>
                     <TableCell>₹{order.total.toLocaleString("en-IN")}</TableCell>
                     <TableCell><StatusBadge status={order.status} /></TableCell>
                   </TableRow>
                 ))}
+                {orders.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                      No recent orders
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </CardContent>

@@ -93,7 +93,7 @@ export default function ProductsPage() {
       };
 
       if (editingProduct) {
-        const res = await fetch(`http://localhost:5000/api/products/${editingProduct.id}`, {
+        const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/products/${editingProduct.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(productPayload)
@@ -103,7 +103,7 @@ export default function ProductsPage() {
         setProducts((prev) => prev.map((p) => p.id === editingProduct.id ? updated : p));
         toast.success("Product updated");
       } else {
-        const res = await fetch('http://localhost:5000/api/products', {
+        const res = await fetch('https://kala-samskruthi-web.onrender.com/api/products', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(productPayload)
@@ -122,7 +122,7 @@ export default function ProductsPage() {
 
   const handleDelete = async (id: string) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/products/${id}`, { method: 'DELETE' });
+      const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/products/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete product');
       setProducts((prev) => prev.filter((p) => p.id !== id));
       toast.success("Product deleted");

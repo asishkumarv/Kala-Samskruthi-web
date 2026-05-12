@@ -14,7 +14,7 @@ export default function ContentPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/content')
+    fetch('https://kala-samskruthi-web.onrender.com/api/content')
       .then(res => res.json())
       .then(data => {
         if (data) setContent(data);
@@ -28,7 +28,7 @@ export default function ContentPage() {
 
   const save = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/content', {
+      const res = await fetch('https://kala-samskruthi-web.onrender.com/api/content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(content)
