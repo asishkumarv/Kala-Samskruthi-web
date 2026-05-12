@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Product {
+  id           String   @id @default(uuid())
+  name         String
+  price        Float
+  originalPrice Float?
+  dimensions   String?
+  size         String?
+  thickness    String?
+  material     String
+  category     String
+  description  String
+  image        String?
+  images       String[]
+  featured     Boolean  @default(false)
+  customizable Boolean  @default(false)
+  stock        Int      @default(1)
+  rating       Float    @default(0.0)
+  artist       String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  reviews      Review[]
+}
+
+model Review {
+  id           String   @id @default(uuid())
+  productId    String?
+  product      Product? @relation(fields: [productId], references: [id])
+  customerName String
+  rating       Float
+  comment      String
+  date         DateTime @default(now())
+  featured     Boolean  @default(false)
+  approved     Boolean  @default(false)
+}
+
+model GalleryImage {
+  id           String   @id @default(uuid())
+  url          String
+  category     String
+  title        String
+  isBanner     Boolean  @default(false)
+  isCarousel   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+}
+
+model Inquiry {
+  id                String   @id @default(uuid())
+  customerName      String
+  email             String
+  phone             String
+  customSize        String?
+  designPreference  String?
+  colorChoices      String?
+  materialSelection String?
+  message           String
+  status            String   @default("New")
+  notes             String?
+  createdAt         DateTime @default(now())
+}
+
+model Order {
+  id            String      @id @default(uuid())
+  customerName  String
+  email         String
+  phone         String
+  address       String
+  total         Float
+  paymentMethod String
+  paymentStatus String      @default("Pending")
+  status        String      @default("Received")
+  bookingDate   DateTime?
+  createdAt     DateTime    @default(now())
+  
+  items         OrderItem[]
+}
+
+model OrderItem {
+  id           String  @id @default(uuid())
+  orderId      String
+  order        Order   @relation(fields: [orderId], references: [id])
+  productName  String
+  productImage String?
+  quantity     Int
+  size         String?
+  material     String?
+  price        Float
+}
+
+model AdminUser {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  role      String   @default("Editor")
+  password  String
+  lastLogin DateTime?
+  active    Boolean  @default(true)
+}
+
+model ArtworkVideo {
+  id           String   @id @default(uuid())
+  title        String
+  category     String?
+  videoUrl     String?
+  description  String?
+  thumbnailUrl String?
+  featured     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+}
+
+model CustomArtworkRequest {
+  id               String   @id @default(uuid())
+  customerName     String
+  phone            String
+  email            String
+  address          String
+  artworkDetails   String
+  uploadedImageUrl String?
+  preferredSize    String?
+  material         String?
+  colorPreferences String?
+  notes            String?
+  status           String   @default("New")
+  createdAt        DateTime @default(now())
+}

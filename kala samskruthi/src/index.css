@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 35 30% 95%;
+    --foreground: 25 40% 12%;
+
+    --card: 35 25% 92%;
+    --card-foreground: 25 40% 12%;
+
+    --popover: 35 30% 95%;
+    --popover-foreground: 25 40% 12%;
+
+    --primary: 32 80% 40%;
+    --primary-foreground: 40 50% 95%;
+
+    --secondary: 25 30% 20%;
+    --secondary-foreground: 40 50% 95%;
+
+    --muted: 35 20% 88%;
+    --muted-foreground: 25 15% 45%;
+
+    --accent: 40 85% 55%;
+    --accent-foreground: 25 40% 12%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 32 25% 82%;
+    --input: 32 25% 82%;
+    --ring: 32 80% 40%;
+
+    --radius: 0.5rem;
+
+    --gold: 40 85% 55%;
+    --gold-dark: 32 80% 40%;
+    --brown-deep: 25 50% 15%;
+    --brown-medium: 25 35% 25%;
+    --cream: 38 40% 92%;
+    --cream-dark: 35 25% 85%;
+
+    --sidebar-background: 25 50% 15%;
+    --sidebar-foreground: 40 50% 95%;
+    --sidebar-primary: 40 85% 55%;
+    --sidebar-primary-foreground: 25 40% 12%;
+    --sidebar-accent: 25 35% 25%;
+    --sidebar-accent-foreground: 40 50% 95%;
+    --sidebar-border: 25 30% 20%;
+    --sidebar-ring: 40 85% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html, body {
+    overflow-x: hidden;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Playfair Display', serif;
+  }
+  .font-heading {
+    font-family: 'Cormorant Garamond', serif;
+  }
+  .font-body {
+    font-family: 'Poppins', sans-serif;
+  }
+  .text-gold-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-accent to-primary;
+  }
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-sm border border-border/50;
+  }
+}
