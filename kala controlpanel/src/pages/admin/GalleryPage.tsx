@@ -76,11 +76,12 @@ export default function GalleryPage() {
   };
 
   const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this gallery image? This action cannot be undone.")) return;
     try {
       const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/gallery/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete');
       setImages((prev) => prev.filter((i) => i.id !== id));
-      toast.success("Image deleted");
+      toast.success("Image deleted successfully");
     } catch (err) {
       toast.error("Failed to delete image");
     }

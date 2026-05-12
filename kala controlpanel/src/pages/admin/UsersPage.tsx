@@ -44,12 +44,11 @@ export default function UsersPage() {
   };
 
   const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to remove this user? This action cannot be undone.")) return;
     try {
-      // NOTE: We probably need a DELETE endpoint for users, assuming it's /api/users/:id
       const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/users/${id}`, { method: 'DELETE' });
-      // We will assume success even if backend doesn't have it yet for demo purposes
       setUsers((prev) => prev.filter((u) => u.id !== id));
-      toast.success("User removed");
+      toast.success("User removed successfully");
     } catch (err) {
       toast.error("Failed to remove user");
     }

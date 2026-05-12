@@ -62,6 +62,7 @@ export interface Testimonial {
   customerName: string;
   rating: number;
   text: string;
+  comment?: string;
   featured: boolean;
   approved: boolean;
   createdAt: string;

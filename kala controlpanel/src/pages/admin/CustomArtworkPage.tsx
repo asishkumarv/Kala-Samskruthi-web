@@ -50,9 +50,18 @@ export default function CustomArtworkPage() {
   };
 
   const handleDelete = async (id: string) => {
-    setRequests((prev) => prev.filter((r) => r.id !== id));
-    if (selected?.id === id) setSelected(null);
-    toast.success("Request deleted");
+    if (!window.confirm("Are you sure you want to delete this custom artwork request? This action cannot be undone.")) return;
+
+    try {
+      const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/custom-requests/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete');
+      setRequests((prev) => prev.filter((r) => r.id !== id));
+      if (selected?.id === id) setSelected(null);
+      toast.success("Request deleted successfully");
+    } catch (err) {
+      toast.error("Failed to delete request");
+      console.error(err);
+    }
   };
 
   const exportCSV = () => {

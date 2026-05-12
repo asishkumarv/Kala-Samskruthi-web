@@ -84,11 +84,12 @@ export default function TestimonialsPage() {
   };
 
   const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this testimonial? This action cannot be undone.")) return;
     try {
       const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/reviews/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed');
       setTestimonials((prev) => prev.filter((t) => t.id !== id));
-      toast.success("Testimonial deleted");
+      toast.success("Testimonial deleted successfully");
     } catch (err) {
       toast.error("Error deleting");
     }

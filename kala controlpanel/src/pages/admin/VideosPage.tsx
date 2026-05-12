@@ -120,11 +120,12 @@ export default function VideosPage() {
   };
 
   const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this video? This action cannot be undone.")) return;
     try {
       const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/videos/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete');
       setVideos((prev) => prev.filter((v) => v.id !== id));
-      toast.success("Video deleted");
+      toast.success("Video deleted successfully");
     } catch (err) {
       toast.error("Failed to delete video");
       console.error(err);

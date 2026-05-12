@@ -121,11 +121,13 @@ export default function ProductsPage() {
   };
 
   const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this product? This action cannot be undone.")) return;
+
     try {
       const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/products/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete product');
       setProducts((prev) => prev.filter((p) => p.id !== id));
-      toast.success("Product deleted");
+      toast.success("Product deleted successfully");
     } catch (err) {
       toast.error("Failed to delete");
       console.error(err);

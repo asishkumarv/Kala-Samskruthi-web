@@ -358,6 +358,14 @@ app.get('/api/custom-requests', async (req, res) => {
   }
 });
 
+app.delete('/api/custom-requests/:id', async (req, res) => {
+  try {
+    await prisma.customArtworkRequest.delete({ where: { id: req.params.id } });
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete custom request' });
+  }
+});
 
 // Users (Admin only)
 app.get('/api/users', async (req, res) => {
