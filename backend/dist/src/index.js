@@ -435,23 +435,47 @@ app.delete('/api/custom-requests/:id', async (req, res) => {
 // Users (Admin only)
 app.get('/api/users', async (req, res) => {
     try {
-        const users = await prisma.user.findMany();
+        const users = await prisma.adminUser.findMany();
         res.json(users);
     }
     catch (error) {
         res.status(500).json({ error: 'Failed to fetch users' });
     }
 });
+app.post('/api/users', async (req, res) => {
+    try {
+        const { name, email, role, password } = req.body;
+        const user = await prisma.adminUser.create({
+            data: {
+                name,
+                email,
+                role,
+                password,
+                active: true
+            }
+        });
+        res.status(201).json(user);
+    }
+    catch (error) {
+        console.error("Admin user creation error:", error);
+        res.status(500).json({ error: 'Failed to add admin user' });
+    }
+});
 app.put('/api/users/:id/role', async (req, res) => {
     try {
-        const user = await prisma.user.update({
+        const { role, active } = req.body;
+        const user = await prisma.adminUser.update({
             where: { id: req.params.id },
-            data: { role: req.body.role }
+            data: {
+                role: role !== undefined ? role : undefined,
+                active: active !== undefined ? active : undefined
+            }
         });
         res.json(user);
     }
     catch (error) {
-        res.status(500).json({ error: 'Failed to update user role' });
+        console.error("Admin user update error:", error);
+        res.status(500).json({ error: 'Failed to update user role/status' });
     }
 });
 app.put('/api/custom-requests/:id/status', async (req, res) => {
@@ -468,7 +492,7 @@ app.put('/api/custom-requests/:id/status', async (req, res) => {
 });
 app.delete('/api/users/:id', async (req, res) => {
     try {
-        await prisma.user.delete({ where: { id: req.params.id } });
+        await prisma.adminUser.delete({ where: { id: req.params.id } });
         res.status(204).send();
     }
     catch (error) {

@@ -57,7 +57,7 @@ const Footer = () => (
           <div className="space-y-3 text-sm">
             <p className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 text-accent shrink-0" />4-63/20/4, Sri Ramanapuram Colony, Ramanthapur, Hyderabad, Telangana 500039</p>
             <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-accent shrink-0" /> 8121341742</p>
-            <p className="flex items-center gap-2"><Mail className="h-4 w-4 text-accent shrink-0" /> hello@kalasamskruthi.com</p>
+            <p className="flex items-center gap-2"><Mail className="h-4 w-4 text-accent shrink-0" /> pradeepjain.jillepalli@gmail.com</p>
           </div>
         </div>
       </div>

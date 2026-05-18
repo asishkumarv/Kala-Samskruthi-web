@@ -112,11 +112,7 @@ app.post('/api/auth/login', async (req, res) => {
 app.post('/api/auth/admin-login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    // For demo/simplicity, if they use the hardcoded demo credentials, let them in.
-    if (email === "admin@kalasamskruthi.com" && password === "admin123") {
-      return res.json({ name: "Admin", email, role: "Super Admin" });
-    }
-    
+
     const user = await prisma.adminUser.findUnique({ where: { email } });
     if (!user || user.password !== password) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -446,25 +442,48 @@ app.delete('/api/custom-requests/:id', async (req, res) => {
 // Users (Admin only)
 app.get('/api/users', async (req, res) => {
   try {
-    const users = await prisma.user.findMany();
+    const users = await prisma.adminUser.findMany();
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
 
-app.put('/api/users/:id/role', async (req, res) => {
+app.post('/api/users', async (req, res) => {
   try {
-    const user = await prisma.user.update({
-      where: { id: req.params.id },
-      data: { role: req.body.role }
+    const { name, email, role, password } = req.body;
+    const user = await prisma.adminUser.create({
+      data: {
+        name,
+        email,
+        role,
+        password,
+        active: true
+      }
     });
-    res.json(user);
+    res.status(201).json(user);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to update user role' });
+    console.error("Admin user creation error:", error);
+    res.status(500).json({ error: 'Failed to add admin user' });
   }
 });
 
+app.put('/api/users/:id/role', async (req, res) => {
+  try {
+    const { role, active } = req.body;
+    const user = await prisma.adminUser.update({
+      where: { id: req.params.id },
+      data: {
+        role: role !== undefined ? role : undefined,
+        active: active !== undefined ? active : undefined
+      }
+    });
+    res.json(user);
+  } catch (error) {
+    console.error("Admin user update error:", error);
+    res.status(500).json({ error: 'Failed to update user role/status' });
+  }
+});
 
 app.put('/api/custom-requests/:id/status', async (req, res) => {
   try {
@@ -480,7 +499,7 @@ app.put('/api/custom-requests/:id/status', async (req, res) => {
 
 app.delete('/api/users/:id', async (req, res) => {
   try {
-    await prisma.user.delete({ where: { id: req.params.id } });
+    await prisma.adminUser.delete({ where: { id: req.params.id } });
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete user' });
