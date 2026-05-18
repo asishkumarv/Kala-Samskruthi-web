@@ -6,8 +6,70 @@ import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { v2 as cloudinary } from 'cloudinary';
 
 dotenv.config();
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Helper: Check if string is base64 data URL
+function isBase64(str: any): boolean {
+  if (typeof str !== 'string') return false;
+  return str.startsWith('data:') && str.includes(';base64,');
+}
+
+// Helper: Upload base64 strings to Cloudinary recursively
+async function uploadToCloudinary(value: any): Promise<any> {
+  if (!value) return value;
+
+  // If it's a base64 string, upload it to Cloudinary
+  if (typeof value === 'string') {
+    if (isBase64(value)) {
+      // Check if Cloudinary is configured
+      if (
+        !process.env.CLOUDINARY_CLOUD_NAME ||
+        process.env.CLOUDINARY_CLOUD_NAME === 'your_cloud_name' ||
+        !process.env.CLOUDINARY_API_KEY ||
+        !process.env.CLOUDINARY_API_SECRET
+      ) {
+        console.warn('WARNING: Cloudinary is not fully configured in env! Saving raw base64 data directly to database.');
+        return value;
+      }
+      try {
+        const uploadResponse = await cloudinary.uploader.upload(value, {
+          resource_type: 'auto',
+          folder: 'kala_samskruthi',
+        });
+        return uploadResponse.secure_url;
+      } catch (error) {
+        console.error('Cloudinary upload error:', error);
+        throw new Error('Failed to upload asset to Cloudinary');
+      }
+    }
+    return value;
+  }
+
+  // If it's an array, map over it recursively
+  if (Array.isArray(value)) {
+    return Promise.all(value.map(item => uploadToCloudinary(item)));
+  }
+
+  // If it's an object (and not a Date or null), process all its keys recursively
+  if (typeof value === 'object' && !(value instanceof Date)) {
+    const processed: any = {};
+    for (const key of Object.keys(value)) {
+      processed[key] = await uploadToCloudinary(value[key]);
+    }
+    return processed;
+  }
+
+  return value;
+}
 
 const app = express();
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -91,21 +153,25 @@ app.get('/api/products/:id', async (req, res) => {
 
 app.post('/api/products', async (req, res) => {
   try {
-    const product = await prisma.product.create({ data: req.body });
+    const body = await uploadToCloudinary(req.body);
+    const product = await prisma.product.create({ data: body });
     res.status(201).json(product);
   } catch (error) {
+    console.error("Product creation error:", error);
     res.status(500).json({ error: 'Failed to create product' });
   }
 });
 
 app.put('/api/products/:id', async (req, res) => {
   try {
+    const body = await uploadToCloudinary(req.body);
     const product = await prisma.product.update({
       where: { id: req.params.id },
-      data: req.body
+      data: body
     });
     res.json(product);
   } catch (error) {
+    console.error("Product update error:", error);
     res.status(500).json({ error: 'Failed to update product' });
   }
 });
@@ -183,21 +249,25 @@ app.get('/api/gallery', async (req, res) => {
 app.put('/api/gallery/:id', async (req, res) => {
   try {
     const { id, ...data } = req.body;
+    const body = await uploadToCloudinary(data);
     const img = await prisma.galleryImage.update({
       where: { id: req.params.id },
-      data: data
+      data: body
     });
     res.json(img);
   } catch (error) {
+    console.error("Gallery update error:", error);
     res.status(500).json({ error: 'Failed to update gallery image' });
   }
 });
 
 app.post('/api/gallery', async (req, res) => {
   try {
-    const img = await prisma.galleryImage.create({ data: req.body });
+    const body = await uploadToCloudinary(req.body);
+    const img = await prisma.galleryImage.create({ data: body });
     res.status(201).json(img);
   } catch (error) {
+    console.error("Gallery creation error:", error);
     res.status(500).json({ error: 'Failed to create gallery image' });
   }
 });
@@ -311,21 +381,25 @@ app.get('/api/videos', async (req, res) => {
 
 app.post('/api/videos', async (req, res) => {
   try {
-    const video = await prisma.artworkVideo.create({ data: req.body });
+    const body = await uploadToCloudinary(req.body);
+    const video = await prisma.artworkVideo.create({ data: body });
     res.status(201).json(video);
   } catch (error) {
+    console.error("Video creation error:", error);
     res.status(500).json({ error: 'Failed to create video' });
   }
 });
 
 app.put('/api/videos/:id', async (req, res) => {
   try {
+    const body = await uploadToCloudinary(req.body);
     const video = await prisma.artworkVideo.update({
       where: { id: req.params.id },
-      data: req.body
+      data: body
     });
     res.json(video);
   } catch (error) {
+    console.error("Video update error:", error);
     res.status(500).json({ error: 'Failed to update video' });
   }
 });
@@ -342,9 +416,11 @@ app.delete('/api/videos/:id', async (req, res) => {
 // Custom Artwork Requests
 app.post('/api/custom-requests', async (req, res) => {
   try {
-    const request = await prisma.customArtworkRequest.create({ data: req.body });
+    const body = await uploadToCloudinary(req.body);
+    const request = await prisma.customArtworkRequest.create({ data: body });
     res.status(201).json(request);
   } catch (error) {
+    console.error("Custom request creation error:", error);
     res.status(500).json({ error: 'Failed to submit custom request' });
   }
 });

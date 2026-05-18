@@ -14,7 +14,7 @@ const WallArt = () => {
       <section className="py-16 px-4">
         <div className="container mx-auto text-center">
           <h1 className="font-display text-4xl md:text-5xl">
-            Moral <em className="text-accent italic">Arts</em> Gallery
+            Mural <em className="text-accent italic">Arts</em> Gallery
           </h1>
           <p className="text-muted-foreground mt-3 font-body">
             Browse our curated collection of handcrafted traditional artworks

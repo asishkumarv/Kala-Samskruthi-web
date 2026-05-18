@@ -51,7 +51,7 @@ const ArtworkDetail = () => {
           <nav className="flex items-center gap-2 text-sm font-body text-muted-foreground">
             <Link to="/" className="hover:text-accent transition-colors">Home</Link>
             <ChevronRight className="h-3 w-3" />
-            <Link to="/moral-arts" className="hover:text-accent transition-colors">Moral Arts</Link>
+            <Link to="/moral-arts" className="hover:text-accent transition-colors">Mural Arts</Link>
             <ChevronRight className="h-3 w-3" />
             <span className="text-foreground">{artwork.name}</span>
           </nav>

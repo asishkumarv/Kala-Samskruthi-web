@@ -36,7 +36,7 @@ const Wishlist = () => {
                 to="/moral-arts"
                 className="inline-block bg-accent text-accent-foreground px-6 py-3 rounded font-body font-medium hover:brightness-110 transition-all"
               >
-                Explore Moral Arts
+                Explore Mural Arts
               </Link>
             </motion.div>
           ) : (
