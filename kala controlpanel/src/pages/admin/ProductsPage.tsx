@@ -1,5 +1,6 @@
 import { useApi } from "@/hooks/useApi";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {  Product } from "@/data/mockData";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { AdminModal } from "@/components/admin/AdminModal";
@@ -328,13 +329,14 @@ export default function ProductsPage() {
         </div>
       </AdminModal>
 
-      {isSaving && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="bg-background border border-border p-6 rounded-lg shadow-xl flex flex-col items-center gap-4 min-w-[200px]">
+      {isSaving && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-background border border-border p-6 rounded-lg shadow-xl flex flex-col items-center gap-4 min-w-[220px]">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="text-sm font-medium text-muted-foreground">Saving product...</p>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
