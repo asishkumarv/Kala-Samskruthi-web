@@ -144,11 +144,12 @@ model User {
 }
 
 model SiteContent {
-  id           String @id @default("singleton")
-  homepageText String @db.Text
-  aboutUsText  String @db.Text
-  contactInfo  Json
-  socialLinks  Json
+  id              String @id @default("singleton")
+  homepageText    String @db.Text
+  homepageSubtext String? @db.Text
+  aboutUsText     String @db.Text
+  contactInfo     Json
+  socialLinks     Json
   materialDetails Json
-  updatedAt    DateTime @updatedAt
+  updatedAt       DateTime @updatedAt
 }

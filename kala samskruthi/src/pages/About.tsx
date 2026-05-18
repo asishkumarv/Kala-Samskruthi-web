@@ -31,7 +31,7 @@ const About = () => {
             The Soul Behind <em className="text-accent italic">Kalā Samskruthi</em>
           </h1>
           <p className="text-muted-foreground mt-4 font-body">
-            {siteContent?.aboutUsText ? siteContent.aboutUsText.split('.')[0] + '.' : "We are custodians of India's timeless art heritage, bridging the ancient and the modern through handcrafted masterpieces."}
+            {siteContent?.aboutUsText }
           </p>
         </div>
       </section>

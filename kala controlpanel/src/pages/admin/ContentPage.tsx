@@ -6,12 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Save } from "lucide-react";
+import { Save, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ContentPage() {
   const [content, setContent] = useState<SiteContent>(mockSiteContent);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     fetch('https://kala-samskruthi-web.onrender.com/api/content')
@@ -27,6 +28,7 @@ export default function ContentPage() {
   }, []);
 
   const save = async () => {
+    setIsSaving(true);
     try {
       const res = await fetch('https://kala-samskruthi-web.onrender.com/api/content', {
         method: 'POST',
@@ -37,6 +39,8 @@ export default function ContentPage() {
       toast.success("Content saved successfully!");
     } catch (err) {
       toast.error("Failed to save content");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -60,8 +64,12 @@ export default function ContentPage() {
             <CardHeader><CardTitle>Homepage Content</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-2">
-                <Label>Hero Text</Label>
-                <Textarea value={content.homepageText} onChange={(e) => setContent({ ...content, homepageText: e.target.value })} rows={4} />
+                <Label>Hero Text (Title)</Label>
+                <Input value={content.homepageText} onChange={(e) => setContent({ ...content, homepageText: e.target.value })} />
+              </div>
+              <div className="grid gap-2">
+                <Label>Hero Subtext (Description)</Label>
+                <Textarea value={content.homepageSubtext || ""} onChange={(e) => setContent({ ...content, homepageSubtext: e.target.value })} rows={4} />
               </div>
               <Button onClick={save} className="gap-2"><Save className="h-4 w-4" /> Save Changes</Button>
             </CardContent>
@@ -143,6 +151,15 @@ export default function ContentPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {isSaving && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-background border border-border p-6 rounded-lg shadow-xl flex flex-col items-center gap-4 min-w-[220px]">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm font-medium text-muted-foreground">Saving content changes...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

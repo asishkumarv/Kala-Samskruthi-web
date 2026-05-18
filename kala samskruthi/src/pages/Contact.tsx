@@ -110,7 +110,7 @@ const Contact = () => {
                 </div>
                 <div className="flex items-center gap-3">
                   <Mail className="h-5 w-5 text-accent" />
-                  <p className="text-sm font-body text-muted-foreground">hello@kalasamskruthi.com</p>
+                  <p className="text-sm font-body text-muted-foreground">pradeepjain.jillepalli@gmail.com</p>
                 </div>
               </div>
             </div>
@@ -127,10 +127,7 @@ const Contact = () => {
             </div>
 
             <div className="glass-card rounded-lg overflow-hidden h-64">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3888.5!2d77.5946!3d12.9252!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTLCsDU1JzMwLjciTiA3N8KwMzUnNDAuNiJF!5e0!3m2!1sen!2sin!4v1&maptype=roadmap"
-              
-              />
+
               <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3807.5112249389545!2d78.54248077390588!3d17.387237002811943!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bcb99410776e415%3A0xddf0d14522a9cbd4!2sKala%20Samskruthi%20Arts!5e0!3m2!1sen!2sin!4v1778917387710!5m2!1sen!2sin"  width="100%"
                 height="100%"
                 style={{ border: 0 }}

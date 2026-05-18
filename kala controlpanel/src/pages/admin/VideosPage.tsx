@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Edit2, Play, Video } from "lucide-react";
+import { Plus, Trash2, Edit2, Play, Video, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const videoCategories = ["Krishna", "Buddha", "Ganesh", "Peacock", "Floral", "Making Process", "Other"] as const;
@@ -33,6 +33,7 @@ export default function VideosPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [playVideo, setPlayVideo] = useState<ArtworkVideo | null>(null);
   const [form, setForm] = useState({ title: "", category: "Krishna" as ArtworkVideo["category"], videoUrl: "", thumbnailUrl: "", featured: false });
+  const [isSaving, setIsSaving] = useState(false);
 
   const filtered = filterCat === "all" ? videos : videos.filter((v) => v.category === filterCat);
 
@@ -92,6 +93,7 @@ export default function VideosPage() {
       }
     }
 
+    setIsSaving(true);
     try {
       if (editId) {
         const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/videos/${editId}`, {
@@ -116,6 +118,8 @@ export default function VideosPage() {
       setModalOpen(false);
     } catch (err) {
       toast.error("Failed to save video");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -236,6 +240,15 @@ export default function VideosPage() {
           );
         })()}
       </AdminModal>
+
+      {isSaving && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-background border border-border p-6 rounded-lg shadow-xl flex flex-col items-center gap-4 min-w-[200px]">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm font-medium text-muted-foreground">Saving video...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
