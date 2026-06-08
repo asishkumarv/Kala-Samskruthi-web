@@ -26,7 +26,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import logo from "@/assets/logo.jpg";
+import logo from "@/assets/logo.png";
 
 const navItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },

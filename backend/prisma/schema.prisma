@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -17,7 +18,7 @@ model Product {
   material     String
   category     String
   description  String
-  image        String?
+  image        String?  @db.Text
   images       String[]
   featured     Boolean  @default(false)
   customizable Boolean  @default(false)
@@ -44,7 +45,7 @@ model Review {
 
 model GalleryImage {
   id           String   @id @default(uuid())
-  url          String
+  url          String   @db.Text
   category     String
   title        String
   isBanner     Boolean  @default(false)
@@ -110,9 +111,9 @@ model ArtworkVideo {
   id           String   @id @default(uuid())
   title        String
   category     String?
-  videoUrl     String?
+  videoUrl     String?  @db.Text
   description  String?
-  thumbnailUrl String?
+  thumbnailUrl String?  @db.Text
   featured     Boolean  @default(false)
   createdAt    DateTime @default(now())
 }
@@ -124,7 +125,7 @@ model CustomArtworkRequest {
   email            String
   address          String
   artworkDetails   String
-  uploadedImageUrl String?
+  uploadedImageUrl String?  @db.Text
   preferredSize    String?
   material         String?
   colorPreferences String?
