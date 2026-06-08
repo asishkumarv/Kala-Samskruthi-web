@@ -7,7 +7,7 @@ import { useState } from "react";
 
 const navLinks = [
   { label: "Home", path: "/" },
-  { label: "Moral Arts", path: "/moral-arts" },
+  { label: "Mural Arts", path: "/moral-arts" },
   { label: "Customize Your Own Artwork", path: "/upload-wall-art" },
   { label: "Videos", path: "/videos" },
   { label: "Track Order", path: "/track-order" },

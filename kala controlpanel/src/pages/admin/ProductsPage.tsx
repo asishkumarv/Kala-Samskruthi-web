@@ -1,5 +1,6 @@
 import { useApi } from "@/hooks/useApi";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {  Product } from "@/data/mockData";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { AdminModal } from "@/components/admin/AdminModal";
@@ -12,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Search, Star } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Star, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const materials = ["MDF", "HDHMR", "WAPC", "Sculpture"] as const;
@@ -32,21 +33,34 @@ export default function ProductsPage() {
   const [filterMaterial, setFilterMaterial] = useState<string>("all");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [form, setForm] = useState({
     name: "", price: "", dimensions: "", thickness: "2 inch",
     material: "MDF" as Product["material"], category: "3D Mural Art", description: "",
-    featured: false, customizable: false, image: "",
+    featured: false, customizable: false, images: [] as string[],
   });
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setForm({ ...form, image: reader.result as string });
-      };
-      reader.readAsDataURL(file);
+  const handleMultipleImagesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const fileList = Array.from(files);
+      const readPromises = fileList.map((file) => {
+        return new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            resolve(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+        });
+      });
+
+      Promise.all(readPromises).then((base64Strings) => {
+        setForm((prev) => ({
+          ...prev,
+          images: [...prev.images, ...base64Strings]
+        }));
+      });
     }
   };
 
@@ -58,7 +72,7 @@ export default function ProductsPage() {
 
   const openAdd = () => {
     setEditingProduct(null);
-    setForm({ name: "", price: "", dimensions: "", thickness: "2 inch", material: "MDF", category: "3D Mural Art", description: "", featured: false, customizable: false, image: "" });
+    setForm({ name: "", price: "", dimensions: "", thickness: "2 inch", material: "MDF", category: "3D Mural Art", description: "", featured: false, customizable: false, images: [] });
     setModalOpen(true);
   };
 
@@ -74,19 +88,27 @@ export default function ProductsPage() {
       description: p.description, 
       featured: p.featured, 
       customizable: p.customizable,
-      image: p.image || (p.images && p.images.length > 0 ? p.images[0] : "")
+      images: p.images && p.images.length > 0 ? p.images : (p.image ? [p.image] : [])
     });
     setModalOpen(true);
   };
 
   const handleSave = async () => {
     if (!form.name || !form.price) { toast.error("Name and price are required"); return; }
+    setIsSaving(true);
     try {
       const productPayload = {
-        ...form,
+        name: form.name,
         price: Number(form.price),
-        image: form.image,
-        images: form.image ? [form.image] : [],
+        dimensions: form.dimensions,
+        thickness: form.thickness,
+        material: form.material,
+        category: form.category,
+        description: form.description,
+        featured: form.featured,
+        customizable: form.customizable,
+        image: form.images[0] || "",
+        images: form.images,
         rating: editingProduct?.rating || 0,
         stock: editingProduct?.stock || 1,
         artist: editingProduct?.artist || "Kala Samskruthi Arts"
@@ -117,6 +139,8 @@ export default function ProductsPage() {
     } catch (err) {
       toast.error("An error occurred");
       console.error(err);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -254,11 +278,35 @@ export default function ProductsPage() {
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label>Product Image</Label>
-              <div className="flex items-center gap-2">
-                <Input type="file" accept="image/*" onChange={handleImageUpload} className="text-xs" />
-                {form.image && (
-                  <img src={form.image} alt="Preview" className="h-10 w-10 rounded object-cover border" />
+              <Label>Product Images (Upload Multiple)</Label>
+              <div className="flex flex-col gap-2">
+                <Input type="file" accept="image/*" multiple onChange={handleMultipleImagesUpload} className="text-xs" />
+                {form.images && form.images.length > 0 && (
+                  <div className="grid grid-cols-4 gap-2 border p-2 rounded bg-muted/30 max-h-40 overflow-y-auto animate-fade-in">
+                    {form.images.map((img, idx) => (
+                      <div key={idx} className="relative aspect-square rounded overflow-hidden border bg-background group">
+                        <img src={img} alt="Preview" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setForm((prev) => ({
+                              ...prev,
+                              images: prev.images.filter((_, i) => i !== idx)
+                            }));
+                          }}
+                          className="absolute top-0.5 right-0.5 bg-destructive text-destructive-foreground p-0.5 rounded-full opacity-80 hover:opacity-100 hover:scale-105 transition-all shadow"
+                          title="Remove Image"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                        {idx === 0 && (
+                          <span className="absolute bottom-0 inset-x-0 bg-primary/85 text-primary-foreground text-[8px] text-center py-0.5 font-medium">
+                            Main
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
@@ -280,6 +328,16 @@ export default function ProductsPage() {
           <Button onClick={handleSave} className="w-full">{editingProduct ? "Update Product" : "Add Product"}</Button>
         </div>
       </AdminModal>
+
+      {isSaving && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-background border border-border p-6 rounded-lg shadow-xl flex flex-col items-center gap-4 min-w-[220px]">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm font-medium text-muted-foreground">Saving product...</p>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

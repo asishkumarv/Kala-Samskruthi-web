@@ -42,7 +42,7 @@ const Cart = () => {
         <h1 className="font-display text-3xl">Your Cart is Empty</h1>
         <p className="text-muted-foreground font-body mt-2">Add some beautiful artworks to get started.</p>
         <Link to="/moral-arts" className="inline-block mt-6 bg-accent text-accent-foreground px-6 py-3 rounded font-body font-medium hover:brightness-110 transition-all">
-          Browse Moral Arts
+          Browse Mural Arts
         </Link>
       </div>
     );

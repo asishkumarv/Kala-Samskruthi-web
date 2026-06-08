@@ -15,7 +15,7 @@ const Footer = () => (
             </div>
           </div>
           <p className="text-sm leading-relaxed">
-            Preserving the beauty of traditional Indian art through handcrafted moral arts that tell stories of culture and heritage.
+            Preserving the beauty of traditional Indian art through handcrafted mural arts that tell stories of culture and heritage.
           </p>
           <div className="flex gap-3 mt-4">
             <a href="#" className="h-9 w-9 rounded-full border border-primary-foreground/20 flex items-center justify-center hover:border-accent hover:text-accent transition-colors">
@@ -34,7 +34,7 @@ const Footer = () => (
           <div className="space-y-2">
             {[
               { label: "Home", path: "/" },
-              { label: "Moral Arts", path: "/moral-arts" },
+              { label: "Mural Arts", path: "/moral-arts" },
               { label: "About Us", path: "/about" },
               { label: "Contact", path: "/contact" },
             ].map((l) => (
@@ -47,7 +47,7 @@ const Footer = () => (
         <div>
           <h4 className="font-display text-lg text-accent mb-4">Art Categories</h4>
           <div className="space-y-2 text-sm">
-            {["Mandala Art", "Tanjore Paintings", "Madhubani Art", "Warli Art", "Pichwai Paintings", "Kalamkari Art"].map((cat) => (
+            {["Mural Arts","Canvas Painting"].map((cat) => (
               <Link key={cat} to="/moral-arts" className="block hover:text-accent transition-colors">{cat}</Link>
             ))}
           </div>
@@ -55,9 +55,9 @@ const Footer = () => (
         <div>
           <h4 className="font-display text-lg text-accent mb-4">Get in Touch</h4>
           <div className="space-y-3 text-sm">
-            <p className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 text-accent shrink-0" /> Art Studio, Bengaluru, Karnataka, India</p>
-            <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-accent shrink-0" /> +91 98765 43210</p>
-            <p className="flex items-center gap-2"><Mail className="h-4 w-4 text-accent shrink-0" /> hello@kalasamskruthi.com</p>
+            <p className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 text-accent shrink-0" />4-63/20/4, Sri Ramanapuram Colony, Ramanthapur, Hyderabad, Telangana 500039</p>
+            <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-accent shrink-0" /> 8121341742</p>
+            <p className="flex items-center gap-2"><Mail className="h-4 w-4 text-accent shrink-0" /> pradeepjain.jillepalli@gmail.com</p>
           </div>
         </div>
       </div>

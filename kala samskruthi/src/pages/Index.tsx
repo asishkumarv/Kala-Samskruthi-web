@@ -63,7 +63,7 @@ const Index = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="font-display text-4xl md:text-6xl lg:text-7xl text-primary-foreground leading-tight"
           >
-            {siteContent?.homepageText ? siteContent.homepageText.split('.')[0] + '.' : "Experience the Beauty of Traditional Art."}
+            {siteContent?.homepageText || "Experience the Beauty of Traditional Art."}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -71,7 +71,7 @@ const Index = () => {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="text-primary-foreground/80 mt-6 text-lg font-body font-light max-w-xl mx-auto"
           >
-            {siteContent?.homepageText || "Discover exquisite handmade moral arts that celebrate India's rich cultural heritage. Each piece is a unique masterpiece, crafted with passion and tradition."}
+            {siteContent?.homepageSubtext || "Discover exquisite handmade mural arts that celebrate India's rich cultural heritage. Each piece is a unique masterpiece, crafted with passion and tradition."}
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -83,7 +83,7 @@ const Index = () => {
               to="/moral-arts"
               className="inline-flex items-center gap-2 bg-accent text-accent-foreground px-8 py-3 rounded font-body font-medium hover:brightness-110 transition-all"
             >
-              Explore Moral Arts <ArrowRight className="h-4 w-4" />
+              Explore Mural Arts <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               to="/videos"

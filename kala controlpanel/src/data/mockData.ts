@@ -70,6 +70,7 @@ export interface Testimonial {
 
 export interface SiteContent {
   homepageText: string;
+  homepageSubtext?: string;
   aboutUsText: string;
   materialDetails: { name: string; description: string }[];
   socialLinks: { platform: string; url: string }[];
@@ -149,8 +150,11 @@ export const mockTestimonials: Testimonial[] = [
   { id: "4", customerName: "New Customer", rating: 3, text: "Good product but packaging could be better.", featured: false, approved: false, createdAt: "2025-04-05" },
 ];
 
+
+
 export const mockSiteContent: SiteContent = {
-  homepageText: "Experience the Beauty of Traditional Art. Discover exquisite handmade moral arts that celebrate India's rich cultural heritage.",
+  homepageText: "Experience the Beauty of Traditional Art",
+  homepageSubtext: "Discover exquisite handmade mural arts that celebrate India's rich cultural heritage. Each piece is a unique masterpiece, crafted with passion and tradition.",
   aboutUsText: "Kala Samskruthi Arts is dedicated to preserving and promoting traditional Indian art forms. Our skilled artisans create stunning mural arts, relief sculptures, and 3D artwork using premium materials.",
   materialDetails: [
     { name: "MDF", description: "Medium Density Fibreboard - Durable, smooth surface ideal for detailed artwork and painting." },
