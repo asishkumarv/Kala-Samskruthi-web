@@ -15,7 +15,7 @@ import { toast } from "sonner";
 export default function TestimonialsPage() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>(mockTestimonials);
   useEffect(() => {
-    fetch('https://kala-samskruthi-web.onrender.com/api/reviews')
+    fetch('https://api.kalasamskruthiarts.in/api/reviews')
       .then(res => res.json())
       .then(data => {
         if (data && data.length > 0) setTestimonials(data);
@@ -33,7 +33,7 @@ export default function TestimonialsPage() {
   const handleAdd = async () => {
     if (!form.customerName || !form.text) { toast.error("Name and text required"); return; }
     try {
-      const res = await fetch('https://kala-samskruthi-web.onrender.com/api/reviews', {
+      const res = await fetch('https://api.kalasamskruthiarts.in/api/reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, comment: form.text, date: new Date().toISOString(), approved: true })
@@ -53,7 +53,7 @@ export default function TestimonialsPage() {
     const t = testimonials.find(t => t.id === id);
     if (!t) return;
     try {
-      const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/reviews/${id}`, {
+      const res = await fetch(`https://api.kalasamskruthiarts.in/api/reviews/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ approved: !t.approved })
@@ -70,7 +70,7 @@ export default function TestimonialsPage() {
     const t = testimonials.find(t => t.id === id);
     if (!t) return;
     try {
-      const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/reviews/${id}`, {
+      const res = await fetch(`https://api.kalasamskruthiarts.in/api/reviews/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ featured: !t.featured })
@@ -86,7 +86,7 @@ export default function TestimonialsPage() {
   const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this testimonial? This action cannot be undone.")) return;
     try {
-      const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/reviews/${id}`, { method: 'DELETE' });
+      const res = await fetch(`https://api.kalasamskruthiarts.in/api/reviews/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed');
       setTestimonials((prev) => prev.filter((t) => t.id !== id));
       toast.success("Testimonial deleted successfully");

@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [user]);
 
   const login = async (email: string, password: string) => {
-    const res = await fetch("https://kala-samskruthi-web.onrender.com/api/auth/login", {
+    const res = await fetch("https://api.kalasamskruthiarts.in/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password })
@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signup = async (name: string, email: string, password: string) => {
-    const res = await fetch("https://kala-samskruthi-web.onrender.com/api/auth/register", {
+    const res = await fetch("https://api.kalasamskruthiarts.in/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password })

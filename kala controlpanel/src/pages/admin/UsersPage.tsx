@@ -23,7 +23,7 @@ export default function UsersPage() {
   const [form, setForm] = useState({ name: "", email: "", role: "Staff Admin" as AdminUser["role"], password: "" });
 
   useEffect(() => {
-    fetch('https://kala-samskruthi-web.onrender.com/api/users')
+    fetch('https://api.kalasamskruthiarts.in/api/users')
       .then(res => res.json())
       .then(data => {
         if (data) setUsers(data);
@@ -39,7 +39,7 @@ export default function UsersPage() {
     if (!form.name || !form.email || !form.password) { toast.error("Name, email and password are required"); return; }
     setIsSaving(true);
     try {
-      const res = await fetch('https://kala-samskruthi-web.onrender.com/api/users', {
+      const res = await fetch('https://api.kalasamskruthiarts.in/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: form.name, email: form.email, role: form.role, password: form.password })
@@ -60,7 +60,7 @@ export default function UsersPage() {
     if (!window.confirm("Are you sure you want to remove this user? This action cannot be undone.")) return;
     setIsSaving(true);
     try {
-      const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/users/${id}`, { method: 'DELETE' });
+      const res = await fetch(`https://api.kalasamskruthiarts.in/api/users/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete');
       setUsers((prev) => prev.filter((u) => u.id !== id));
       toast.success("User removed successfully");
@@ -75,7 +75,7 @@ export default function UsersPage() {
     setIsSaving(true);
     try {
       const u = users.find(u => u.id === id);
-      const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/users/${id}/role`, {
+      const res = await fetch(`https://api.kalasamskruthiarts.in/api/users/${id}/role`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ active: !u?.active })

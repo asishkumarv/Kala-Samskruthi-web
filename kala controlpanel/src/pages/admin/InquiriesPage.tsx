@@ -36,7 +36,7 @@ export default function InquiriesPage() {
 
   const updateStatus = async (id: string, status: Inquiry["status"]) => {
     try {
-      const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/inquiries/${id}/status`, {
+      const res = await fetch(`https://api.kalasamskruthiarts.in/api/inquiries/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })

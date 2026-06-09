@@ -16,7 +16,7 @@ export default function ContentPage() {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    fetch('https://kala-samskruthi-web.onrender.com/api/content')
+    fetch('https://api.kalasamskruthiarts.in/api/content')
       .then(res => res.json())
       .then(data => {
         if (data) setContent(data);
@@ -31,7 +31,7 @@ export default function ContentPage() {
   const save = async () => {
     setIsSaving(true);
     try {
-      const res = await fetch('https://kala-samskruthi-web.onrender.com/api/content', {
+      const res = await fetch('https://api.kalasamskruthiarts.in/api/content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(content)

@@ -6,7 +6,7 @@ export const useApi = (endpoint) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('https://kala-samskruthi-web.onrender.com/api' + endpoint)
+    fetch('https://api.kalasamskruthiarts.in/api' + endpoint)
       .then((res) => res.json())
       .then((json) => {
         setData(json);

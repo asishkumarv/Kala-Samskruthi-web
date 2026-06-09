@@ -20,7 +20,7 @@ const OrderConfirmation = () => {
 
   useEffect(() => {
     if (!orderDetails && orderId) {
-      fetch(`https://kala-samskruthi-web.onrender.com/api/orders/${orderId}`)
+      fetch(`https://api.kalasamskruthiarts.in/api/orders/${orderId}`)
         .then(res => res.json())
         .then(data => {
           setOrderDetails(data);

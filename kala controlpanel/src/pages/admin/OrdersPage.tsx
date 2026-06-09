@@ -35,7 +35,7 @@ export default function OrdersPage() {
 
   const updateStatus = async (id: string, status: Order["status"]) => {
     try {
-      const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/orders/${id}/status`, {
+      const res = await fetch(`https://api.kalasamskruthiarts.in/api/orders/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })

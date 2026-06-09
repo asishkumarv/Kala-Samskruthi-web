@@ -50,7 +50,7 @@ export default function GalleryPage() {
     
     try {
       if (editId) {
-        const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/gallery/${editId}`, {
+        const res = await fetch(`https://api.kalasamskruthiarts.in/api/gallery/${editId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(form)
@@ -59,7 +59,7 @@ export default function GalleryPage() {
         setImages((prev) => prev.map((i) => i.id === editId ? { ...i, ...form } : i));
         toast.success("Image updated");
       } else {
-        const res = await fetch('https://kala-samskruthi-web.onrender.com/api/gallery', {
+        const res = await fetch('https://api.kalasamskruthiarts.in/api/gallery', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(form)
@@ -78,7 +78,7 @@ export default function GalleryPage() {
   const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this gallery image? This action cannot be undone.")) return;
     try {
-      const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/gallery/${id}`, { method: 'DELETE' });
+      const res = await fetch(`https://api.kalasamskruthiarts.in/api/gallery/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete');
       setImages((prev) => prev.filter((i) => i.id !== id));
       toast.success("Image deleted successfully");

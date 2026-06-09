@@ -5,7 +5,7 @@ export const useVideos = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('https://kala-samskruthi-web.onrender.com/api/videos')
+    fetch('https://api.kalasamskruthiarts.in/api/videos')
       .then((res) => res.json())
       .then((json) => {
         setData(json);

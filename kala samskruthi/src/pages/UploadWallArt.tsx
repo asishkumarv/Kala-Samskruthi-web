@@ -52,7 +52,7 @@ const UploadWallArt = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const response = await fetch('https://kala-samskruthi-web.onrender.com/api/custom-requests', {
+      const response = await fetch('https://api.kalasamskruthiarts.in/api/custom-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

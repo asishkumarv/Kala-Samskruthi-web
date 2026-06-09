@@ -35,7 +35,7 @@ export default function CustomArtworkPage() {
 
   const updateStatus = async (id: string, status: CustomArtworkRequest["status"]) => {
     try {
-      const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/custom-requests/${id}/status`, {
+      const res = await fetch(`https://api.kalasamskruthiarts.in/api/custom-requests/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
@@ -53,7 +53,7 @@ export default function CustomArtworkPage() {
     if (!window.confirm("Are you sure you want to delete this custom artwork request? This action cannot be undone.")) return;
 
     try {
-      const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/custom-requests/${id}`, { method: 'DELETE' });
+      const res = await fetch(`https://api.kalasamskruthiarts.in/api/custom-requests/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete');
       setRequests((prev) => prev.filter((r) => r.id !== id));
       if (selected?.id === id) setSelected(null);

@@ -41,19 +41,46 @@ export default function ProductsPage() {
     featured: false, customizable: false, images: [] as string[],
   });
 
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const MAX_WIDTH = 1200;
+          const MAX_HEIGHT = 1200;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx?.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/jpeg", 0.7)); // Compress to 70% quality JPEG
+        };
+        img.src = event.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleMultipleImagesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       const fileList = Array.from(files);
-      const readPromises = fileList.map((file) => {
-        return new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            resolve(reader.result as string);
-          };
-          reader.readAsDataURL(file);
-        });
-      });
+      const readPromises = fileList.map(compressImage);
 
       Promise.all(readPromises).then((base64Strings) => {
         setForm((prev) => ({
@@ -97,6 +124,41 @@ export default function ProductsPage() {
     if (!form.name || !form.price) { toast.error("Name and price are required"); return; }
     setIsSaving(true);
     try {
+      // Compress any existing images that are too large (e.g. older uncompressed uploads > 500KB)
+      const finalImages = await Promise.all(form.images.map(async (img) => {
+        if (img.startsWith("data:image/") && img.length > 500000) {
+          return new Promise<string>((resolve) => {
+            const image = new Image();
+            image.onload = () => {
+              const canvas = document.createElement("canvas");
+              const MAX_WIDTH = 1200;
+              const MAX_HEIGHT = 1200;
+              let width = image.width;
+              let height = image.height;
+
+              if (width > height) {
+                if (width > MAX_WIDTH) {
+                  height *= MAX_WIDTH / width;
+                  width = MAX_WIDTH;
+                }
+              } else {
+                if (height > MAX_HEIGHT) {
+                  width *= MAX_HEIGHT / height;
+                  height = MAX_HEIGHT;
+                }
+              }
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext("2d");
+              ctx?.drawImage(image, 0, 0, width, height);
+              resolve(canvas.toDataURL("image/jpeg", 0.7)); 
+            };
+            image.src = img;
+          });
+        }
+        return img;
+      }));
+
       const productPayload = {
         name: form.name,
         price: Number(form.price),
@@ -107,15 +169,15 @@ export default function ProductsPage() {
         description: form.description,
         featured: form.featured,
         customizable: form.customizable,
-        image: form.images[0] || "",
-        images: form.images,
+        image: finalImages[0] || "",
+        images: finalImages,
         rating: editingProduct?.rating || 0,
         stock: editingProduct?.stock || 1,
         artist: editingProduct?.artist || "Kala Samskruthi Arts"
       };
 
       if (editingProduct) {
-        const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/products/${editingProduct.id}`, {
+        const res = await fetch(`https://api.kalasamskruthiarts.in/api/products/${editingProduct.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(productPayload)
@@ -125,7 +187,7 @@ export default function ProductsPage() {
         setProducts((prev) => prev.map((p) => p.id === editingProduct.id ? updated : p));
         toast.success("Product updated");
       } else {
-        const res = await fetch('https://kala-samskruthi-web.onrender.com/api/products', {
+        const res = await fetch('https://api.kalasamskruthiarts.in/api/products', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(productPayload)
@@ -148,7 +210,7 @@ export default function ProductsPage() {
     if (!window.confirm("Are you sure you want to delete this product? This action cannot be undone.")) return;
 
     try {
-      const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/products/${id}`, { method: 'DELETE' });
+      const res = await fetch(`https://api.kalasamskruthiarts.in/api/products/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete product');
       setProducts((prev) => prev.filter((p) => p.id !== id));
       toast.success("Product deleted successfully");

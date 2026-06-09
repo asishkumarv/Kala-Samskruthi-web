@@ -97,7 +97,7 @@ export default function VideosPage() {
     setIsSaving(true);
     try {
       if (editId) {
-        const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/videos/${editId}`, {
+        const res = await fetch(`https://api.kalasamskruthiarts.in/api/videos/${editId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...form, thumbnailUrl: thumb })
@@ -106,7 +106,7 @@ export default function VideosPage() {
         setVideos((prev) => prev.map((v) => v.id === editId ? { ...v, ...form, thumbnailUrl: thumb } : v));
         toast.success("Video updated");
       } else {
-        const res = await fetch('https://kala-samskruthi-web.onrender.com/api/videos', {
+        const res = await fetch('https://api.kalasamskruthiarts.in/api/videos', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...form, thumbnailUrl: thumb })
@@ -127,7 +127,7 @@ export default function VideosPage() {
   const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this video? This action cannot be undone.")) return;
     try {
-      const res = await fetch(`https://kala-samskruthi-web.onrender.com/api/videos/${id}`, { method: 'DELETE' });
+      const res = await fetch(`https://api.kalasamskruthiarts.in/api/videos/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete');
       setVideos((prev) => prev.filter((v) => v.id !== id));
       toast.success("Video deleted successfully");

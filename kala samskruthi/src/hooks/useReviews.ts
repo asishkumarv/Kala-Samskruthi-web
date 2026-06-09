@@ -5,7 +5,7 @@ export const useReviews = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('https://kala-samskruthi-web.onrender.com/api/reviews')
+    fetch('https://api.kalasamskruthiarts.in/api/reviews')
       .then((res) => res.json())
       .then((json) => {
         setData(json);

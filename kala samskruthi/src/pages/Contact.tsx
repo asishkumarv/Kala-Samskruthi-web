@@ -15,7 +15,7 @@ const Contact = () => {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch('https://kala-samskruthi-web.onrender.com/api/inquiries', {
+      const response = await fetch('https://api.kalasamskruthiarts.in/api/inquiries', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
